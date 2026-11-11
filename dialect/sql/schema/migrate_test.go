@@ -328,6 +328,75 @@ func TestMigrate_Diff(t *testing.T) {
 	require.ErrorIs(t, err, migrate.ErrNoPlan)
 }
 
+func TestMySQL_HeatWave(t *testing.T) {
+	ctx := context.Background()
+
+	// A HeatWave-enabled MySQL instance, where the "users" table was loaded
+	// (e.g. `SECONDARY_LOAD`) and its columns were excluded from the secondary
+	// engine, either manually (e.g. `ALTER TABLE users MODIFY name BLOB NOT
+	// SECONDARY`) or automatically by the HeatWave Guided Load feature. MySQL
+	// reports these columns with the "NOT SECONDARY" engine attribute in the
+	// EXTRA column of INFORMATION_SCHEMA.COLUMNS.
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	// (*MySQL).init: query the database version.
+	mock.ExpectQuery("SHOW VARIABLES LIKE 'version'").
+		WillReturnRows(sqlmock.NewRows([]string{"Variable_name", "Value"}).AddRow("version", "9.7.0-cloud"))
+	// Atlas driver initialization: query the system variables.
+	mock.ExpectQuery("SELECT @@version, @@collation_server, @@character_set_server, @@lower_case_table_names").
+		WillReturnRows(sqlmock.NewRows([]string{"@@version", "@@collation_server", "@@character_set_server", "@@lower_case_table_names"}).
+			AddRow("9.7.0-cloud", "utf8mb4_0900_ai_ci", "utf8mb4", 0))
+	// Inspect the schemas in the database.
+	mock.ExpectQuery("SELECT `SCHEMA_NAME`, `DEFAULT_CHARACTER_SET_NAME`, `DEFAULT_COLLATION_NAME` from `INFORMATION_SCHEMA`.`SCHEMATA`").
+		WillReturnRows(sqlmock.NewRows([]string{"SCHEMA_NAME", "DEFAULT_CHARACTER_SET_NAME", "DEFAULT_COLLATION_NAME"}).AddRow("test", "utf8mb4", "utf8mb4_bin"))
+	// Inspect the tables in the schema.
+	mock.ExpectQuery("SELECT t1.TABLE_SCHEMA, t1.TABLE_NAME, t2.CHARACTER_SET_NAME, t1.TABLE_COLLATION, t1.AUTO_INCREMENT, t1.TABLE_COMMENT, t1.CREATE_OPTIONS, t1.ENGINE, t3.SUPPORT = 'DEFAULT' AS DEFAULT_ENGINE, t1.TABLE_TYPE").
+		WillReturnRows(sqlmock.NewRows([]string{"TABLE_SCHEMA", "TABLE_NAME", "CHARACTER_SET_NAME", "TABLE_COLLATION", "AUTO_INCREMENT", "TABLE_COMMENT", "CREATE_OPTIONS", "ENGINE", "DEFAULT_ENGINE", "TABLE_TYPE"}).
+			AddRow("test", "users", "utf8mb4", "utf8mb4_bin", nil, nil, "", "InnoDB", true, "BASE TABLE"))
+	// Inspect the columns of the table. The EXTRA column is wrapped with an
+	// expression that drops the "NOT SECONDARY" engine attribute (the table
+	// below holds the stripped value a real database would return for it).
+	mock.ExpectQuery(regexp.QuoteMeta("SELECT `TABLE_NAME`, `COLUMN_NAME`, `COLUMN_TYPE`, `COLUMN_COMMENT`, `IS_NULLABLE`, `COLUMN_KEY`, `COLUMN_DEFAULT`, ") + regexp.QuoteMeta(stripExtra) + regexp.QuoteMeta(", `CHARACTER_SET_NAME`, `COLLATION_NAME`, `GENERATION_EXPRESSION` FROM `INFORMATION_SCHEMA`.`COLUMNS`")).
+		WillReturnRows(sqlmock.NewRows([]string{"TABLE_NAME", "COLUMN_NAME", "COLUMN_TYPE", "COLUMN_COMMENT", "IS_NULLABLE", "COLUMN_KEY", "COLUMN_DEFAULT", "EXTRA", "CHARACTER_SET_NAME", "COLLATION_NAME", "GENERATION_EXPRESSION"}).
+			AddRow("users", "id", "bigint", "", "NO", "PRI", nil, "", nil, nil, nil).
+			AddRow("users", "name", "varchar(255)", "", "NO", "", nil, "", "utf8mb4", "utf8mb4_bin", nil))
+	// Inspect the indexes, foreign-keys and check constraints of the table.
+	mock.ExpectQuery("SELECT `TABLE_NAME`, `INDEX_NAME`, `COLUMN_NAME`").
+		WillReturnRows(sqlmock.NewRows([]string{"TABLE_NAME", "INDEX_NAME", "COLUMN_NAME", "NON_UNIQUE", "SEQ_IN_INDEX", "INDEX_TYPE", "DESC", "INDEX_COMMENT", "SUB_PART", "EXPRESSION"}).
+			AddRow("users", "PRIMARY", "id", 1, 1, "BTREE", false, nil, nil, nil))
+	mock.ExpectQuery("SELECT t1.CONSTRAINT_NAME, t1.TABLE_NAME, t1.COLUMN_NAME").
+		WillReturnRows(sqlmock.NewRows([]string{"CONSTRAINT_NAME", "TABLE_NAME", "COLUMN_NAME", "TABLE_SCHEMA", "REFERENCED_TABLE_NAME", "REFERENCED_COLUMN_NAME", "REFERENCED_TABLE_SCHEMA", "UPDATE_RULE", "DELETE_RULE"}))
+	mock.ExpectQuery("SELECT t1.TABLE_NAME, t1.CONSTRAINT_NAME, t2.CHECK_CLAUSE, t1.ENFORCED").
+		WillReturnRows(sqlmock.NewRows([]string{"TABLE_NAME", "CONSTRAINT_NAME", "CHECK_CLAUSE", "ENFORCED"}))
+
+	// The engine attribute is dropped from the inspection query, and the
+	// migration succeeds without any unexpected plan for the existing table.
+	m, err := NewMigrate(sql.OpenDB(dialect.MySQL, db))
+	require.NoError(t, err)
+	require.NoError(t, m.Create(ctx, usersTable))
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
+func TestMySQL_heatWaveConn_Query(t *testing.T) {
+	ctx := context.Background()
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	conn := &heatWaveConn{ExecQuerier: sql.OpenDB(dialect.MySQL, db)}
+
+	// Queries that are not the columns inspection query are not modified.
+	mock.ExpectQuery(escape("SELECT `TABLE_NAME`, `INDEX_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS`")).
+		WillReturnRows(sqlmock.NewRows([]string{"TABLE_NAME"}))
+	rows := &sql.Rows{}
+	require.NoError(t, conn.Query(ctx, "SELECT `TABLE_NAME`, `INDEX_NAME` FROM `INFORMATION_SCHEMA`.`STATISTICS`", []any{}, rows))
+
+	// The EXTRA column of the columns inspection query is wrapped with an
+	// expression that drops the HeatWave engine attributes.
+	mock.ExpectQuery(strings.Replace(escape("SELECT `TABLE_NAME`, `COLUMN_NAME`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS`"), regexp.QuoteMeta("`EXTRA`"), regexp.QuoteMeta(stripExtra), 1)).
+		WillReturnRows(sqlmock.NewRows([]string{"TABLE_NAME"}))
+	require.NoError(t, conn.Query(ctx, "SELECT `TABLE_NAME`, `COLUMN_NAME`, `EXTRA` FROM `INFORMATION_SCHEMA`.`COLUMNS`", []any{}, rows))
+	require.NoError(t, mock.ExpectationsWereMet())
+}
+
 func requireFileEqual(t *testing.T, name, contents string) {
 	c, err := os.ReadFile(name)
 	require.NoError(t, err)

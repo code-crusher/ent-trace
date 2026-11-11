@@ -74,8 +74,44 @@ func (d *MySQL) matchSchema(columns ...string) *sql.Predicate {
 }
 
 func (d *MySQL) atOpen(conn dialect.ExecQuerier) (migrate.Driver, error) {
-	return mysql.Open(&db{ExecQuerier: conn})
+	return mysql.Open(&db{ExecQuerier: &heatWaveConn{ExecQuerier: conn}})
 }
+
+// heatWaveConn wraps the dialect connection and removes the HeatWave
+// engine attributes (e.g. "NOT SECONDARY"), that MySQL reports in the
+// EXTRA column of INFORMATION_SCHEMA.COLUMNS, from the Atlas inspection
+// queries. These attributes are not real column attributes and were
+// rejected by the inspection with an error. For example:
+//
+//	sql/schema: mysql: unknown extra column attribute "NOT SECONDARY"
+//
+// Note, ent does not support defining columns with engine attributes,
+// and HeatWave users can always exclude columns from being loaded into
+// the secondary engine by re-defining them. See:
+// https://dev.mysql.com/doc/heatwave/en/mys-hw-excluded-columns.html
+type heatWaveConn struct {
+	dialect.ExecQuerier
+}
+
+// columnsTable is the table reference Atlas uses for inspecting
+// the columns of the tables in the schema.
+const columnsTable = "`INFORMATION_SCHEMA`.`COLUMNS`"
+
+// Query overrides the EXTRA column in the columns inspection query with
+// an expression that drops the HeatWave engine attributes. See stripExtra.
+func (c *heatWaveConn) Query(ctx context.Context, query string, args, v any) error {
+	if strings.Contains(query, columnsTable) {
+		query = strings.Replace(query, "`EXTRA`", stripExtra, 1)
+	}
+	return c.ExecQuerier.Query(ctx, query, args, v)
+}
+
+// stripExtra is the SQL expression replacing the EXTRA column in the
+// columns inspection query. It removes the optional "NOT SECONDARY" (or
+// "SECONDARY") attribute that is set by HeatWave, either manually (e.g.
+// "ALTER TABLE t MODIFY c BLOB NOT SECONDARY") or automatically by the
+// HeatWave Guided Load feature.
+const stripExtra = "TRIM(BOTH ' ' FROM REPLACE(REPLACE(REPLACE(`EXTRA`, ' NOT SECONDARY', ''), 'NOT SECONDARY', ''), ' SECONDARY', ''))"
 
 func (d *MySQL) atTable(t1 *Table, t2 *schema.Table) {
 	t2.SetCharset("utf8mb4").SetCollation("utf8mb4_bin")
