@@ -23,10 +23,12 @@ func main() {
 	}
 	tmpl := template.Must(template.New("types").
 		Funcs(template.FuncMap{
-			"ops":   ops,
-			"title": strings.Title,
-			"ident": ident,
-			"type":  typ,
+			"ops":      ops,
+			"fns":      fns,
+			"variadic": variadic,
+			"title":    strings.Title,
+			"ident":    ident,
+			"type":     typ,
 		}).
 		Parse(string(buf)))
 	b := &bytes.Buffer{}
@@ -66,11 +68,26 @@ func main() {
 
 func ops(t field.Type) []string {
 	switch t {
-	case field.TypeBool, field.TypeBytes, field.TypeUUID, field.TypeOther:
+	case field.TypeBool:
 		return []string{"EQ", "NEQ"}
+	case field.TypeBytes, field.TypeUUID, field.TypeOther:
+		return []string{"EQ", "NEQ", "In", "NotIn"}
 	default:
-		return []string{"EQ", "NEQ", "LT", "LTE", "GT", "GTE"}
+		return []string{"EQ", "NEQ", "LT", "LTE", "GT", "GTE", "In", "NotIn"}
 	}
+}
+
+// fns returns the string functions supported by the given type.
+func fns(t field.Type) []string {
+	if t == field.TypeString {
+		return []string{"Contains", "ContainsFold", "EqualFold", "HasPrefix", "HasSuffix"}
+	}
+	return nil
+}
+
+// variadic reports if the given operation takes a list of values.
+func variadic(op string) bool {
+	return op == "In" || op == "NotIn"
 }
 
 func ident(t field.Type) string {

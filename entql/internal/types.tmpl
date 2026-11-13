@@ -60,12 +60,33 @@ func {{ $titled }}NotNil() {{ $iface }} {
 }
 
 {{ range $op := ops $t }}
-	// {{ $titled }}{{ $op }} applies the {{ $op }} operation on the given value.
-	func {{ $titled }}{{ $op }}(v {{ type $t }}) {{ $iface }} {
+	{{ if variadic $op }}
+		// {{ $titled }}{{ $op }} applies the {{ $op }} operation on the given values.
+		func {{ $titled }}{{ $op }}(vs ...{{ type $t }}) {{ $iface }} {
+			field := &Field{}
+			values := make([]any, len(vs))
+			for i := range vs {
+				values[i] = vs[i]
+			}
+			done := func(name string) { field.Name = name }
+			return &{{ $builder }}{P: {{ $op }}(field, values...), done: done}
+		}
+	{{ else }}
+		// {{ $titled }}{{ $op }} applies the {{ $op }} operation on the given value.
+		func {{ $titled }}{{ $op }}(v {{ type $t }}) {{ $iface }} {
+			field := &Field{}
+			value := &Value{V: v}
+			done := func(name string) { field.Name = name }
+			return &{{ $builder }}{P: {{ $op }}(field, value), done: done}
+		}
+	{{ end }}
+{{ end }}
+{{ range $fn := fns $t }}
+	// {{ $titled }}{{ $fn }} applies the {{ $fn }} operation on the given value.
+	func {{ $titled }}{{ $fn }}(v string) {{ $iface }} {
 		field := &Field{}
-		value := &Value{V: v}
 		done := func(name string) { field.Name = name }
-		return &{{ $builder }}{P: {{ $op }}(field, value), done: done}
+		return &{{ $builder }}{P: {{ $fn }}(field, v), done: done}
 	}
 {{ end }}
 

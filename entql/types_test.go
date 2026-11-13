@@ -7,6 +7,7 @@ package entql
 import (
 	"strconv"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 )
@@ -73,6 +74,54 @@ func TestFielder(t *testing.T) {
 				),
 			),
 			expected: `!(field == true || field == false)`,
+		},
+		{
+			input:    IntIn(1, 2, 3),
+			expected: `field in [1,2,3]`,
+		},
+		{
+			input:    IntNotIn(1, 2, 3),
+			expected: `field not in [1,2,3]`,
+		},
+		{
+			input:    Uint64In(1, 2),
+			expected: `field in [1,2]`,
+		},
+		{
+			input:    Float64NotIn(1.5, 2.5),
+			expected: `field not in [1.5,2.5]`,
+		},
+		{
+			input:    TimeIn(time.Unix(0, 0), time.Unix(1, 0)),
+			expected: `field in ["1970-01-01T00:00:00Z","1970-01-01T00:00:01Z"]`,
+		},
+		{
+			input:    StringIn("a", "b"),
+			expected: `field in ["a","b"]`,
+		},
+		{
+			input:    StringNotIn("a", "b"),
+			expected: `field not in ["a","b"]`,
+		},
+		{
+			input:    StringContains("a"),
+			expected: `contains(field, "a")`,
+		},
+		{
+			input:    StringContainsFold("a"),
+			expected: `contains_fold(field, "a")`,
+		},
+		{
+			input:    StringEqualFold("a"),
+			expected: `equal_fold(field, "a")`,
+		},
+		{
+			input:    StringHasPrefix("a"),
+			expected: `has_prefix(field, "a")`,
+		},
+		{
+			input:    StringHasSuffix("a"),
+			expected: `has_suffix(field, "a")`,
 		},
 	}
 	for i := range tests {

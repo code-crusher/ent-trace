@@ -151,6 +151,36 @@ func TestGraph_EvalP(t *testing.T) {
 			wantQuery: `SELECT * FROM "users" WHERE "active" AND (EXISTS (SELECT "pets"."owner_id" FROM "pets" WHERE "users"."uid" = "pets"."owner_id") AND "users"."uid" IN (SELECT "user_groups"."user_id" FROM "user_groups") AND "users"."name" = "users"."uid")`,
 		},
 		{
+			s:         sql.Dialect(dialect.Postgres).Select().From(sql.Table("users")),
+			p:         entql.IntIn(1, 2, 3).Field("uid"),
+			wantQuery: `SELECT * FROM "users" WHERE "users"."uid" IN ($1, $2, $3)`,
+			wantArgs:  []any{1, 2, 3},
+		},
+		{
+			s:         sql.Dialect(dialect.Postgres).Select().From(sql.Table("users")),
+			p:         entql.IntNotIn(1, 2).Field("uid"),
+			wantQuery: `SELECT * FROM "users" WHERE "users"."uid" NOT IN ($1, $2)`,
+			wantArgs:  []any{1, 2},
+		},
+		{
+			s:         sql.Dialect(dialect.Postgres).Select().From(sql.Table("users")),
+			p:         entql.StringIn("pedro", "xabi").Field("name"),
+			wantQuery: `SELECT * FROM "users" WHERE "users"."name" IN ($1, $2)`,
+			wantArgs:  []any{"pedro", "xabi"},
+		},
+		{
+			s:         sql.Dialect(dialect.Postgres).Select().From(sql.Table("users")),
+			p:         entql.StringContains("a8").Field("name"),
+			wantQuery: `SELECT * FROM "users" WHERE "users"."name" LIKE $1`,
+			wantArgs:  []any{"%a8%"},
+		},
+		{
+			s:         sql.Dialect(dialect.Postgres).Select().From(sql.Table("users")),
+			p:         entql.StringHasPrefix("a8").Field("name"),
+			wantQuery: `SELECT * FROM "users" WHERE "users"."name" LIKE $1`,
+			wantArgs:  []any{"a8%"},
+		},
+		{
 			s: sql.Dialect(dialect.Postgres).Select().From(sql.Table("users")).Where(sql.EQ("active", true)),
 			p: entql.HasEdgeWith("pets", entql.FieldEQ("name", "pedro"), WrapFunc(func(s *sql.Selector) {
 				s.Where(sql.EQ("owner_id", 10))

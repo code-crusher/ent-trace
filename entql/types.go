@@ -152,6 +152,28 @@ func BytesNEQ(v []byte) BytesP {
 	return &bytesP{P: NEQ(field, value), done: done}
 }
 
+// BytesIn applies the In operation on the given values.
+func BytesIn(vs ...[]byte) BytesP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &bytesP{P: In(field, values...), done: done}
+}
+
+// BytesNotIn applies the NotIn operation on the given values.
+func BytesNotIn(vs ...[]byte) BytesP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &bytesP{P: NotIn(field, values...), done: done}
+}
+
 // BytesOr returns a composed predicate that represents the logical OR predicate.
 func BytesOr(x, y BytesP, z ...BytesP) BytesP {
 	expr := &bytesP{}
@@ -266,6 +288,28 @@ func TimeGTE(v time.Time) TimeP {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &timeP{P: GTE(field, value), done: done}
+}
+
+// TimeIn applies the In operation on the given values.
+func TimeIn(vs ...time.Time) TimeP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &timeP{P: In(field, values...), done: done}
+}
+
+// TimeNotIn applies the NotIn operation on the given values.
+func TimeNotIn(vs ...time.Time) TimeP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &timeP{P: NotIn(field, values...), done: done}
 }
 
 // TimeOr returns a composed predicate that represents the logical OR predicate.
@@ -384,6 +428,28 @@ func UintGTE(v uint) UintP {
 	return &uintP{P: GTE(field, value), done: done}
 }
 
+// UintIn applies the In operation on the given values.
+func UintIn(vs ...uint) UintP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uintP{P: In(field, values...), done: done}
+}
+
+// UintNotIn applies the NotIn operation on the given values.
+func UintNotIn(vs ...uint) UintP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uintP{P: NotIn(field, values...), done: done}
+}
+
 // UintOr returns a composed predicate that represents the logical OR predicate.
 func UintOr(x, y UintP, z ...UintP) UintP {
 	expr := &uintP{}
@@ -498,6 +564,28 @@ func Uint8GTE(v uint8) Uint8P {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &uint8P{P: GTE(field, value), done: done}
+}
+
+// Uint8In applies the In operation on the given values.
+func Uint8In(vs ...uint8) Uint8P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint8P{P: In(field, values...), done: done}
+}
+
+// Uint8NotIn applies the NotIn operation on the given values.
+func Uint8NotIn(vs ...uint8) Uint8P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint8P{P: NotIn(field, values...), done: done}
 }
 
 // Uint8Or returns a composed predicate that represents the logical OR predicate.
@@ -616,6 +704,28 @@ func Uint16GTE(v uint16) Uint16P {
 	return &uint16P{P: GTE(field, value), done: done}
 }
 
+// Uint16In applies the In operation on the given values.
+func Uint16In(vs ...uint16) Uint16P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint16P{P: In(field, values...), done: done}
+}
+
+// Uint16NotIn applies the NotIn operation on the given values.
+func Uint16NotIn(vs ...uint16) Uint16P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint16P{P: NotIn(field, values...), done: done}
+}
+
 // Uint16Or returns a composed predicate that represents the logical OR predicate.
 func Uint16Or(x, y Uint16P, z ...Uint16P) Uint16P {
 	expr := &uint16P{}
@@ -730,6 +840,28 @@ func Uint32GTE(v uint32) Uint32P {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &uint32P{P: GTE(field, value), done: done}
+}
+
+// Uint32In applies the In operation on the given values.
+func Uint32In(vs ...uint32) Uint32P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint32P{P: In(field, values...), done: done}
+}
+
+// Uint32NotIn applies the NotIn operation on the given values.
+func Uint32NotIn(vs ...uint32) Uint32P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint32P{P: NotIn(field, values...), done: done}
 }
 
 // Uint32Or returns a composed predicate that represents the logical OR predicate.
@@ -848,6 +980,28 @@ func Uint64GTE(v uint64) Uint64P {
 	return &uint64P{P: GTE(field, value), done: done}
 }
 
+// Uint64In applies the In operation on the given values.
+func Uint64In(vs ...uint64) Uint64P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint64P{P: In(field, values...), done: done}
+}
+
+// Uint64NotIn applies the NotIn operation on the given values.
+func Uint64NotIn(vs ...uint64) Uint64P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &uint64P{P: NotIn(field, values...), done: done}
+}
+
 // Uint64Or returns a composed predicate that represents the logical OR predicate.
 func Uint64Or(x, y Uint64P, z ...Uint64P) Uint64P {
 	expr := &uint64P{}
@@ -962,6 +1116,28 @@ func IntGTE(v int) IntP {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &intP{P: GTE(field, value), done: done}
+}
+
+// IntIn applies the In operation on the given values.
+func IntIn(vs ...int) IntP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &intP{P: In(field, values...), done: done}
+}
+
+// IntNotIn applies the NotIn operation on the given values.
+func IntNotIn(vs ...int) IntP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &intP{P: NotIn(field, values...), done: done}
 }
 
 // IntOr returns a composed predicate that represents the logical OR predicate.
@@ -1080,6 +1256,28 @@ func Int8GTE(v int8) Int8P {
 	return &int8P{P: GTE(field, value), done: done}
 }
 
+// Int8In applies the In operation on the given values.
+func Int8In(vs ...int8) Int8P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int8P{P: In(field, values...), done: done}
+}
+
+// Int8NotIn applies the NotIn operation on the given values.
+func Int8NotIn(vs ...int8) Int8P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int8P{P: NotIn(field, values...), done: done}
+}
+
 // Int8Or returns a composed predicate that represents the logical OR predicate.
 func Int8Or(x, y Int8P, z ...Int8P) Int8P {
 	expr := &int8P{}
@@ -1194,6 +1392,28 @@ func Int16GTE(v int16) Int16P {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &int16P{P: GTE(field, value), done: done}
+}
+
+// Int16In applies the In operation on the given values.
+func Int16In(vs ...int16) Int16P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int16P{P: In(field, values...), done: done}
+}
+
+// Int16NotIn applies the NotIn operation on the given values.
+func Int16NotIn(vs ...int16) Int16P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int16P{P: NotIn(field, values...), done: done}
 }
 
 // Int16Or returns a composed predicate that represents the logical OR predicate.
@@ -1312,6 +1532,28 @@ func Int32GTE(v int32) Int32P {
 	return &int32P{P: GTE(field, value), done: done}
 }
 
+// Int32In applies the In operation on the given values.
+func Int32In(vs ...int32) Int32P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int32P{P: In(field, values...), done: done}
+}
+
+// Int32NotIn applies the NotIn operation on the given values.
+func Int32NotIn(vs ...int32) Int32P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int32P{P: NotIn(field, values...), done: done}
+}
+
 // Int32Or returns a composed predicate that represents the logical OR predicate.
 func Int32Or(x, y Int32P, z ...Int32P) Int32P {
 	expr := &int32P{}
@@ -1426,6 +1668,28 @@ func Int64GTE(v int64) Int64P {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &int64P{P: GTE(field, value), done: done}
+}
+
+// Int64In applies the In operation on the given values.
+func Int64In(vs ...int64) Int64P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int64P{P: In(field, values...), done: done}
+}
+
+// Int64NotIn applies the NotIn operation on the given values.
+func Int64NotIn(vs ...int64) Int64P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &int64P{P: NotIn(field, values...), done: done}
 }
 
 // Int64Or returns a composed predicate that represents the logical OR predicate.
@@ -1544,6 +1808,28 @@ func Float32GTE(v float32) Float32P {
 	return &float32P{P: GTE(field, value), done: done}
 }
 
+// Float32In applies the In operation on the given values.
+func Float32In(vs ...float32) Float32P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &float32P{P: In(field, values...), done: done}
+}
+
+// Float32NotIn applies the NotIn operation on the given values.
+func Float32NotIn(vs ...float32) Float32P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &float32P{P: NotIn(field, values...), done: done}
+}
+
 // Float32Or returns a composed predicate that represents the logical OR predicate.
 func Float32Or(x, y Float32P, z ...Float32P) Float32P {
 	expr := &float32P{}
@@ -1658,6 +1944,28 @@ func Float64GTE(v float64) Float64P {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &float64P{P: GTE(field, value), done: done}
+}
+
+// Float64In applies the In operation on the given values.
+func Float64In(vs ...float64) Float64P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &float64P{P: In(field, values...), done: done}
+}
+
+// Float64NotIn applies the NotIn operation on the given values.
+func Float64NotIn(vs ...float64) Float64P {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &float64P{P: NotIn(field, values...), done: done}
 }
 
 // Float64Or returns a composed predicate that represents the logical OR predicate.
@@ -1776,6 +2084,63 @@ func StringGTE(v string) StringP {
 	return &stringP{P: GTE(field, value), done: done}
 }
 
+// StringIn applies the In operation on the given values.
+func StringIn(vs ...string) StringP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &stringP{P: In(field, values...), done: done}
+}
+
+// StringNotIn applies the NotIn operation on the given values.
+func StringNotIn(vs ...string) StringP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &stringP{P: NotIn(field, values...), done: done}
+}
+
+// StringContains applies the Contains operation on the given value.
+func StringContains(v string) StringP {
+	field := &Field{}
+	done := func(name string) { field.Name = name }
+	return &stringP{P: Contains(field, v), done: done}
+}
+
+// StringContainsFold applies the ContainsFold operation on the given value.
+func StringContainsFold(v string) StringP {
+	field := &Field{}
+	done := func(name string) { field.Name = name }
+	return &stringP{P: ContainsFold(field, v), done: done}
+}
+
+// StringEqualFold applies the EqualFold operation on the given value.
+func StringEqualFold(v string) StringP {
+	field := &Field{}
+	done := func(name string) { field.Name = name }
+	return &stringP{P: EqualFold(field, v), done: done}
+}
+
+// StringHasPrefix applies the HasPrefix operation on the given value.
+func StringHasPrefix(v string) StringP {
+	field := &Field{}
+	done := func(name string) { field.Name = name }
+	return &stringP{P: HasPrefix(field, v), done: done}
+}
+
+// StringHasSuffix applies the HasSuffix operation on the given value.
+func StringHasSuffix(v string) StringP {
+	field := &Field{}
+	done := func(name string) { field.Name = name }
+	return &stringP{P: HasSuffix(field, v), done: done}
+}
+
 // StringOr returns a composed predicate that represents the logical OR predicate.
 func StringOr(x, y StringP, z ...StringP) StringP {
 	expr := &stringP{}
@@ -1860,6 +2225,28 @@ func ValueNEQ(v driver.Valuer) ValueP {
 	return &valueP{P: NEQ(field, value), done: done}
 }
 
+// ValueIn applies the In operation on the given values.
+func ValueIn(vs ...driver.Valuer) ValueP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &valueP{P: In(field, values...), done: done}
+}
+
+// ValueNotIn applies the NotIn operation on the given values.
+func ValueNotIn(vs ...driver.Valuer) ValueP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &valueP{P: NotIn(field, values...), done: done}
+}
+
 // ValueOr returns a composed predicate that represents the logical OR predicate.
 func ValueOr(x, y ValueP, z ...ValueP) ValueP {
 	expr := &valueP{}
@@ -1942,6 +2329,28 @@ func OtherNEQ(v driver.Valuer) OtherP {
 	value := &Value{V: v}
 	done := func(name string) { field.Name = name }
 	return &otherP{P: NEQ(field, value), done: done}
+}
+
+// OtherIn applies the In operation on the given values.
+func OtherIn(vs ...driver.Valuer) OtherP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &otherP{P: In(field, values...), done: done}
+}
+
+// OtherNotIn applies the NotIn operation on the given values.
+func OtherNotIn(vs ...driver.Valuer) OtherP {
+	field := &Field{}
+	values := make([]any, len(vs))
+	for i := range vs {
+		values[i] = vs[i]
+	}
+	done := func(name string) { field.Name = name }
+	return &otherP{P: NotIn(field, values...), done: done}
 }
 
 // OtherOr returns a composed predicate that represents the logical OR predicate.

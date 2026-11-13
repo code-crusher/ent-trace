@@ -271,11 +271,27 @@ func FieldLTE(name string, v any) P {
 	}
 }
 
+// Contains returns a predicate to check if the expression contains the given substr.
+func Contains(x Expr, substr string) P {
+	return &CallExpr{
+		Func: FuncContains,
+		Args: []Expr{x, &Value{V: substr}},
+	}
+}
+
 // FieldContains returns a predicate to check if the field value contains a substr.
 func FieldContains(name, substr string) P {
 	return &CallExpr{
 		Func: FuncContains,
 		Args: []Expr{&Field{Name: name}, &Value{V: substr}},
+	}
+}
+
+// ContainsFold returns a predicate to check if the expression contains the given substr under case-folding.
+func ContainsFold(x Expr, substr string) P {
+	return &CallExpr{
+		Func: FuncContainsFold,
+		Args: []Expr{x, &Value{V: substr}},
 	}
 }
 
@@ -287,11 +303,27 @@ func FieldContainsFold(name, substr string) P {
 	}
 }
 
+// EqualFold returns a predicate to check if the expression is equal to the given string under case-folding.
+func EqualFold(x Expr, v string) P {
+	return &CallExpr{
+		Func: FuncEqualFold,
+		Args: []Expr{x, &Value{V: v}},
+	}
+}
+
 // FieldEqualFold returns a predicate to check if the field is equal to the given string under case-folding.
 func FieldEqualFold(name, v string) P {
 	return &CallExpr{
 		Func: FuncEqualFold,
 		Args: []Expr{&Field{Name: name}, &Value{V: v}},
+	}
+}
+
+// HasPrefix returns a predicate to check if the expression starts with the given prefix.
+func HasPrefix(x Expr, prefix string) P {
+	return &CallExpr{
+		Func: FuncHasPrefix,
+		Args: []Expr{x, &Value{V: prefix}},
 	}
 }
 
@@ -303,6 +335,14 @@ func FieldHasPrefix(name, prefix string) P {
 	}
 }
 
+// HasSuffix returns a predicate to check if the expression ends with the given suffix.
+func HasSuffix(x Expr, suffix string) P {
+	return &CallExpr{
+		Func: FuncHasSuffix,
+		Args: []Expr{x, &Value{V: suffix}},
+	}
+}
+
 // FieldHasSuffix returns a predicate to check if the field ends with the given suffix.
 func FieldHasSuffix(name, suffix string) P {
 	return &CallExpr{
@@ -311,22 +351,32 @@ func FieldHasSuffix(name, suffix string) P {
 	}
 }
 
-// FieldIn returns a predicate to check if the field value matches any value in the given list.
-func FieldIn(name string, vs ...any) P {
+// In returns a predicate to check if the expression matches any value in the given list.
+func In(x Expr, vs ...any) P {
 	return &BinaryExpr{
 		Op: OpIn,
-		X:  &Field{Name: name},
+		X:  x,
+		Y:  &Value{V: vs},
+	}
+}
+
+// FieldIn returns a predicate to check if the field value matches any value in the given list.
+func FieldIn(name string, vs ...any) P {
+	return In(&Field{Name: name}, vs...)
+}
+
+// NotIn returns a predicate to check if the expression doesn't match any value in the given list.
+func NotIn(x Expr, vs ...any) P {
+	return &BinaryExpr{
+		Op: OpNotIn,
+		X:  x,
 		Y:  &Value{V: vs},
 	}
 }
 
 // FieldNotIn returns a predicate to check if the field value doesn't match any value in the given list.
 func FieldNotIn(name string, vs ...any) P {
-	return &BinaryExpr{
-		Op: OpNotIn,
-		X:  &Field{Name: name},
-		Y:  &Value{V: vs},
-	}
+	return NotIn(&Field{Name: name}, vs...)
 }
 
 // FieldNil returns a predicate to check if a field is nil (null in databases).
