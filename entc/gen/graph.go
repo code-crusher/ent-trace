@@ -202,6 +202,7 @@ func NewGraph(c *Config, schemas ...*load.Schema) (g *Graph, err error) {
 		g.addIndexes(schemas[i])
 	}
 	check(g.edgeSchemas(), "resolving edges")
+	check(g.compositeIDs(), "resolving composite ids")
 	aliases(g)
 	g.defaults()
 	if c.Storage != nil && c.Storage.Init != nil {
@@ -659,6 +660,41 @@ func (g *Graph) edgeSchemas() error {
 	return nil
 }
 
+// compositeIDs resolves composite identifiers defined by the field.ID annotation
+// on non-edge schemas. Unlike edge schemas, whose composite identifiers are composed
+// of the relation columns and are resolved in edgeSchemas, the fields listed by the
+// annotation must be declared explicitly by the schema, and no standalone ID field
+// is generated for such types.
+func (g *Graph) compositeIDs() error {
+	for _, t := range g.Nodes {
+		if t.IsEdgeSchema() {
+			continue
+		}
+		ant := fieldAnnotate(t.Annotations)
+		if ant == nil || len(ant.ID) == 0 {
+			continue
+		}
+		if len(ant.ID) < 2 {
+			return fmt.Errorf("composite-id in type %s must be composed of at least 2 fields", t.Name)
+		}
+		for _, name := range ant.ID {
+			if name == "id" {
+				return fmt.Errorf(`composite-id field "id" cannot be used in type %s: define a standalone ID field instead`, t.Name)
+			}
+			f, ok := t.fields[name]
+			if !ok {
+				return fmt.Errorf("missing composite-id field %q in type %s", name, t.Name)
+			}
+			if f.Optional {
+				return fmt.Errorf("composite-id field %q cannot be optional", name)
+			}
+			t.EdgeSchema.ID = append(t.EdgeSchema.ID, f)
+		}
+		t.ID = nil
+	}
+	return nil
+}
+
 // Tables returns the schema definitions of SQL tables for the graph.
 func (g *Graph) Tables() (all []*schema.Table, err error) {
 	tables := make(map[string]*schema.Table)
@@ -870,16 +906,11 @@ func fkColumn(e *Edge, owner *schema.Table, refPK *schema.Column) *schema.Column
 func addCompositePK(t *schema.Table, n *Type) error {
 	columns := make([]*schema.Column, 0, len(n.EdgeSchema.ID))
 	for _, id := range n.EdgeSchema.ID {
-		for _, f := range n.Fields {
-			if !f.IsEdgeField() || id != f {
-				continue
-			}
-			c, ok := t.Column(f.StorageKey())
-			if !ok {
-				return fmt.Errorf("missing column %q for edge field %q.%q", f.StorageKey(), n.Name, f.Name)
-			}
-			columns = append(columns, c)
+		c, ok := t.Column(id.StorageKey())
+		if !ok {
+			return fmt.Errorf("missing column %q for composite-id field %q.%q", id.StorageKey(), n.Name, id.Name)
 		}
+		columns = append(columns, c)
 	}
 	t.PrimaryKey = columns
 	return nil

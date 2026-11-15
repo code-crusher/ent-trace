@@ -20,8 +20,8 @@ type Annotation struct {
 	//
 	StructTag map[string]string
 
-	// ID defines a multi-field schema identifier. Note,
-	// the annotation is valid only for edge schemas.
+	// ID defines a multi-field schema identifier. It is used to
+	// define a composite primary-key composed of the listed fields.
 	//
 	//	func (TweetLike) Annotations() []schema.Annotation {
 	//		return []schema.Annotation{
@@ -32,15 +32,14 @@ type Annotation struct {
 	ID []string
 }
 
-// ID defines a multi-field schema identifier. Note, the
-// annotation is valid only for edge schemas.
+// ID defines a multi-field schema identifier. It is used to
+// define a composite primary-key composed of the listed fields.
 //
 //	func (TweetLike) Annotations() []schema.Annotation {
 //		return []schema.Annotation{
 //			field.ID("user_id", "tweet_id"),
 //		}
 //	}
-//
 func ID(first, second string, fields ...string) *Annotation {
 	return &Annotation{ID: append([]string{first, second}, fields...)}
 }

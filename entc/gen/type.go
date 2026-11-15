@@ -295,7 +295,7 @@ func (t Type) IsEdgeSchema() bool {
 
 // HasCompositeID indicates if the type has a composite ID field.
 func (t Type) HasCompositeID() bool {
-	return t.IsEdgeSchema() && len(t.EdgeSchema.ID) > 1
+	return len(t.EdgeSchema.ID) > 1
 }
 
 // HasOneFieldID indicates if the type has an ID with one field (not composite).

@@ -1423,6 +1423,45 @@ composite primary-key of the two edge-fields, `user_id` and `tweet_id`. Therefor
 not be generated for the `Like` struct along with any of its builder methods. e.g. `Get`, `OnlyID`, etc.
 :::
 
+The `field.ID` annotation is not limited to edge schemas. It can be used on any schema to define a composite
+primary-key composed of two or more of its fields, avoiding a synthetic `id` column. For example:
+
+```go
+// AccountRole holds the schema definition for the AccountRole entity.
+type AccountRole struct {
+	ent.Schema
+}
+
+func (AccountRole) Annotations() []schema.Annotation {
+	return []schema.Annotation{
+		field.ID("account_id", "role_id"),
+	}
+}
+
+func (AccountRole) Fields() []ent.Field {
+	return []ent.Field{
+		field.Int("account_id"),
+		field.Int("role_id"),
+	}
+}
+
+func (AccountRole) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.To("account", Account.Type).
+			Field("account_id").
+			Unique().
+			Required(),
+		edge.To("role", Role.Type).
+			Field("role_id").
+			Unique().
+			Required(),
+	}
+}
+```
+
+As with edge schemas, no `id` field is generated for the `AccountRole` struct and its builder methods. Note that
+fields used as part of a composite primary-key cannot be `Optional`.
+
 #### Usage Of Edge Schema In Other Edge Types
 
 In some cases, users want to store O2M/M2O or O2O relationships in a separate table (i.e. join table) in order to

@@ -735,6 +735,70 @@ func TestDependencyAnnotation_Build(t *testing.T) {
 	}
 }
 
+func TestCompositeID(t *testing.T) {
+	require := require.New(t)
+	accountRoles := &load.Schema{
+		Name: "AccountRole",
+		Fields: []*load.Field{
+			{Name: "granted_by", Info: &field.TypeInfo{Type: field.TypeUUID}, Optional: true},
+			{Name: "account_id", Info: &field.TypeInfo{Type: field.TypeUUID}},
+			{Name: "role_id", Info: &field.TypeInfo{Type: field.TypeUUID}},
+		},
+		Annotations: dict("Fields", dict("ID", []string{"account_id", "role_id"})),
+		Edges: []*load.Edge{
+			{Name: "account", Type: "Account", Unique: true, Required: true},
+			{Name: "role", Type: "Role", Unique: true, Required: true},
+		},
+	}
+	graph, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]},
+		accountRoles,
+		&load.Schema{Name: "Account", Fields: []*load.Field{{Name: "id", Info: &field.TypeInfo{Type: field.TypeUUID}}}},
+		&load.Schema{Name: "Role", Fields: []*load.Field{{Name: "id", Info: &field.TypeInfo{Type: field.TypeUUID}}}},
+	)
+	require.NoError(err)
+	n := graph.Nodes[0]
+	require.True(n.HasCompositeID(), "schema with field.ID annotation should have a composite ID")
+	require.False(n.HasOneFieldID(), "schema with composite ID should not have a single ID field")
+	require.Nil(n.ID, "schema with composite ID should not have a generated ID field")
+	require.Len(n.EdgeSchema.ID, 2)
+	require.Equal([]string{"account_id", "role_id"}, []string{n.EdgeSchema.ID[0].Name, n.EdgeSchema.ID[1].Name})
+
+	tables, err := graph.Tables()
+	require.NoError(err)
+	idx := slices.IndexFunc(tables, func(t *schema.Table) bool { return t.Name == "account_roles" })
+	require.NotEqual(-1, idx)
+	tr := tables[idx]
+	require.Len(tr.PrimaryKey, 2, "composite primary key should be composed of the two annotated fields")
+	require.Equal("account_id", tr.PrimaryKey[0].Name)
+	require.Equal("role_id", tr.PrimaryKey[1].Name)
+}
+
+func TestCompositeIDInvalid(t *testing.T) {
+	require := require.New(t)
+	// Missing field referenced by the annotation.
+	_, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]},
+		&load.Schema{
+			Name:        "AccountRole",
+			Annotations: dict("Fields", dict("ID", []string{"account_id", "role_id"})),
+			Fields:      []*load.Field{{Name: "account_id", Info: &field.TypeInfo{Type: field.TypeUUID}}},
+		},
+	)
+	require.ErrorContains(err, `missing composite-id field "role_id"`)
+
+	// Optional fields cannot be part of the composite ID.
+	_, err = NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]},
+		&load.Schema{
+			Name:        "AccountRole",
+			Annotations: dict("Fields", dict("ID", []string{"account_id", "role_id"})),
+			Fields: []*load.Field{
+				{Name: "account_id", Info: &field.TypeInfo{Type: field.TypeUUID}},
+				{Name: "role_id", Info: &field.TypeInfo{Type: field.TypeUUID}, Optional: true},
+			},
+		},
+	)
+	require.ErrorContains(err, `composite-id field "role_id" cannot be optional`)
+}
+
 func TestEdgeFieldCollation(t *testing.T) {
 	var (
 		user = &load.Schema{
