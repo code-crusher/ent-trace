@@ -122,6 +122,12 @@ To enable the [`GlobalUniqueID`](migrate.md#universal-ids) option in versioned m
 `globalid=1` to the desired state. For example: `--to "ent://ent/schema?globalid=1"`.
 :::
 
+:::note
+To hash symbols (index and constraint names) that exceed the identifier length limit of the target database, append the
+query parameter `hash-symbols=1` to the desired state. For example:
+`--to "ent://ent/schema?hash-symbols=1"`. This is supported by Atlas v0.36.0 and above.
+:::
+
 Run `ls ent/migrate/migrations` after the command above was passed successfully, and you will notice Atlas created 2
 files:
 

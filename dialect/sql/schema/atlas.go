@@ -973,7 +973,15 @@ func (a *Atlas) aColumns(et *Table, at *schema.Table) error {
 			return err
 		}
 		if c1.Unique && (len(et.PrimaryKey) != 1 || et.PrimaryKey[0] != c1) {
+			n := len(at.Indexes)
 			a.sqlDialect.atUniqueC(et, c1, at, c2)
+			// Implicit unique indexes are named after their table and column (e.g.
+			// "<table>_<column>_key"), and might exceed the dialect identifier limit.
+			if a.hashSymbols {
+				for _, idx := range at.Indexes[n:] {
+					idx.Name = a.symbol(idx.Name)
+				}
+			}
 		}
 		if c1.Increment {
 			a.sqlDialect.atIncrementC(at, c2)

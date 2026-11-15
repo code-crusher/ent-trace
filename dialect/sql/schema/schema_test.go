@@ -388,3 +388,54 @@ CREATE VIEW $pets_without_fur$ ($id$, $name$, $owner_id$) AS SELECT id, name, ow
 		})
 	}
 }
+
+func TestDDL_HashImplicitIndexes(t *testing.T) {
+	// A unique column creates an implicit unique index that is named after its
+	// table and column (e.g. "<table>_<column>_key"), and might exceed the
+	// dialect identifier limit (see https://github.com/ent/ent/issues/4459).
+	const (
+		column = "super_duper_mega_ultra_hyper_giant_field_name_for_testing_purposes"
+		hash   = "fb08b64c9cd9e189163175ccdf6ffcc9"
+	)
+	tables := func() []*Table {
+		users := &Table{
+			Name: "users",
+			Pos:  "users.go:15",
+			Columns: []*Column{
+				{Name: "id", Type: field.TypeInt},
+				{Name: column, Type: field.TypeString, Unique: true},
+			},
+		}
+		users.PrimaryKey = users.Columns[:1]
+		return []*Table{users}
+	}
+	for _, tt := range []struct {
+		dialect, version, expected string
+	}{
+		{dialect.Postgres, "15", "users_super_duper_mega_ultra_h_" + hash},
+		{dialect.MySQL, "8", "super_duper_mega_ultra_hyper_gi_34a5e6d3161e836dba07b11918e7e719"},
+		{dialect.SQLite, "", "users_super_duper_mega_ultra_hy_" + hash},
+	} {
+		t.Run(tt.dialect, func(t *testing.T) {
+			ac, err := DDL(context.Background(), DDLArgs{
+				Dialect:     tt.dialect,
+				Version:     tt.version,
+				Tables:      tables(),
+				HashSymbols: true,
+			})
+			require.NoError(t, err)
+			require.Contains(t, ac, tt.expected)
+			require.NotContains(t, ac, column+"_key")
+		})
+		t.Run(tt.dialect+" no hashing", func(t *testing.T) {
+			ac, err := DDL(context.Background(), DDLArgs{
+				Dialect: tt.dialect,
+				Version: tt.version,
+				Tables:  tables(),
+			})
+			require.NoError(t, err)
+			require.Contains(t, ac, column)
+			require.NotContains(t, ac, tt.expected)
+		})
+	}
+}
