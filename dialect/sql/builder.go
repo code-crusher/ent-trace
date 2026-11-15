@@ -3157,9 +3157,16 @@ func (b *Builder) writeSchema(schema string) {
 
 // Err returns a concatenated error of all errors encountered during
 // the query-building, or were added manually by calling AddError.
+//
+// The returned error maintains the original errors for inspection through
+// errors.Is, errors.As, or the Unwrap method, while preserving the
+// semicolon-separated error message for backward compatibility.
 func (b *Builder) Err() error {
-	if len(b.errs) == 0 {
+	switch len(b.errs) {
+	case 0:
 		return nil
+	case 1:
+		return b.errs[0]
 	}
 	br := strings.Builder{}
 	for i := range b.errs {
@@ -3168,8 +3175,22 @@ func (b *Builder) Err() error {
 		}
 		br.WriteString(b.errs[i].Error())
 	}
-	return errors.New(br.String())
+	return multiError{errs: b.errs, msg: br.String()}
 }
+
+// multiError is an error that wraps multiple errors while retaining their
+// original structure. It implements the Unwrap method to support the errors.Is
+// and errors.As functions, and its Error method joins the underlying errors
+// with semicolons, keeping the message of a Builder with multiple errors
+// backward compatible.
+type multiError struct {
+	errs []error
+	msg  string
+}
+
+func (m multiError) Error() string { return m.msg }
+
+func (m multiError) Unwrap() []error { return m.errs }
 
 // An Op represents an operator.
 type Op int

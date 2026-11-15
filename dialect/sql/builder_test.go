@@ -7,6 +7,7 @@ package sql
 import (
 	"context"
 	"database/sql/driver"
+	"errors"
 	"fmt"
 	"strconv"
 	"strings"
@@ -1497,6 +1498,34 @@ func TestBuilder_Err(t *testing.T) {
 	}))
 	_, _ = b.Query()
 	require.EqualError(t, b.Err(), "invalid; unexpected; inner")
+}
+
+type customTestError struct{ msg string }
+
+func (e *customTestError) Error() string { return e.msg }
+
+func TestBuilder_ErrMaintainsStructure(t *testing.T) {
+	var (
+		first  = &customTestError{msg: "first"}
+		second = &customTestError{msg: "second"}
+	)
+	b := Select("i-")
+	b.AddError(first)
+	b.AddError(second)
+	err := b.Err()
+	require.EqualError(t, err, "first; second")
+	// The wrapped errors are reachable by their exact types through
+	// errors.As, rather than only through the flattened error string.
+	var ce *customTestError
+	require.True(t, errors.As(err, &ce))
+	require.Same(t, first, ce)
+	// The wrapped errors are also reachable by value through errors.Is.
+	require.ErrorIs(t, err, first)
+	require.ErrorIs(t, err, second)
+	// The original errors are also reachable through Unwrap.
+	require.Equal(t, []error{first, second}, err.(multiError).Unwrap())
+	// A single error is returned as-is, keeping its original type.
+	require.Same(t, first, Select("i-").AddError(first).Err())
 }
 
 func TestSelector_OrderByExpr(t *testing.T) {
