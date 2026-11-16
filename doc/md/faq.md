@@ -22,7 +22,8 @@ sidebar_label: FAQ
 [How to add `CHECK` constraints to table?](#how-to-add-check-constraints-to-table)  
 [How to define a custom precision numeric field?](#how-to-define-a-custom-precision-numeric-field)  
 [How to configure two or more `DB` to separate read and write?](#how-to-configure-two-or-more-db-to-separate-read-and-write)  
-[How to configure `json.Marshal` to inline the `edges` keys in the top level object?](#how-to-configure-jsonmarshal-to-inline-the-edges-keys-in-the-top-level-object)
+[How to configure `json.Marshal` to inline the `edges` keys in the top level object?](#how-to-configure-jsonmarshal-to-inline-the-edges-keys-in-the-top-level-object)  
+[Why does `json.Marshal` fail with "encountered a cycle" for eager-loaded entities?](#why-does-jsonmarshal-fail-with-encountered-a-cycle-for-eager-loaded-entities)  
 
 ## Answers
 
@@ -847,3 +848,47 @@ func (e *EncodeExtension) Hooks() []gen.Hook {
 	}
 }
 ```
+
+#### Why does `json.Marshal` fail with "encountered a cycle" for eager-loaded entities?
+
+When the [`bidiedges`](features.md#bidirectional-edge-refs) feature-flag is enabled,
+eager-loading sets two-way references between the loaded entities (for example, the loaded
+owner points back at the loaded card, and vice versa). The resulting object graph contains a
+reference cycle, and the standard `encoding/json` package refuses to encode it:
+
+```
+json: unsupported value: encountered a cycle via *ent.User
+```
+
+To return eagerly-loaded entities over HTTP (for example with Fiber or net/http), you need to
+break the cycle before calling `json.Marshal`. There are two common options:
+
+1. Detach the circular references before marshaling:
+
+```go
+project, err := client.Project.Query().
+	Where(project.IDEQ(id)).
+	WithRoles().
+	Only(ctx)
+if err != nil {
+	return err
+}
+// Detach the back references set by the bidiedges feature.
+// Adjust the traversal to match your schema.
+for _, role := range project.Edges.Roles {
+	role.Edges.Project = nil
+}
+return c.Status(200).JSON(fiber.Map{
+	"code":    200,
+	"message": "some message",
+	"data":    project,
+})
+```
+
+2. Extend the generated models with a custom `MarshalJSON` method that omits (or inlines) the
+edges as described in the [json.Marshal FAQ entry](#how-to-configure-jsonmarshal-to-inline-the-edges-keys-in-the-top-level-object).
+Note that with `bidiedges` enabled, inlining the edges with a naive `MarshalJSON` does not remove
+the cycle by itself, because the inverse references still point back at the parent; you still need
+to detach them (or exclude the back references from encoding) as shown above.
+
+If you are not using the `bidiedges` feature-flag, eager-loaded back references are never set by Ent, and marshaling the result works out of the box.

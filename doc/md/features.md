@@ -87,7 +87,10 @@ The `bidiedges` option guides Ent to set two-way references when eager-loading (
 This option can be added to a project using the `--feature bidiedges` flag.
 
 :::note
-Users that use the standard encoding/json.MarshalJSON should detach the circular references before calling `json.Marshal`.
+The two-way references form a cycle in the object graph, so `encoding/json` refuses to encode eagerly-loaded
+entities with an error like `json: unsupported value: encountered a cycle via *ent.<Type>`.
+Detach (nil-out) the back references before calling `json.Marshal`, for example `card.Edges.Owner = nil`,
+or use a custom `MarshalJSON` as described in the [FAQ](faq.md#why-does-jsonmarshal-fail-with-encountered-a-cycle-for-eager-loaded-entities).
 :::
 
 ### Schema Config

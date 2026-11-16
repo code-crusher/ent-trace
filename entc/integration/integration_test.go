@@ -171,6 +171,7 @@ var (
 		Sensitive,
 		EagerLoading,
 		NamedEagerLoading,
+		JSONMarshal,
 		Mutation,
 		CreateBulk,
 		ConstraintChecks,
@@ -2193,6 +2194,59 @@ func NoSchemaChanges(t *testing.T, client *ent.Client) {
 		migrate.WithDropColumn(true),
 	)
 	require.NoError(t, err)
+}
+
+// JSONMarshal asserts the behavior of encoding/json on entities that were
+// eagerly-loaded with the "bidiedges" feature-flag enabled. With this flag,
+// eager-loading sets two-way references between the loaded nodes (e.g.,
+// `pet.Edges.Owner` points back to the user that loaded it). Because the
+// graph contains a reference cycle, encoding/json fails with
+// "json: unsupported value: encountered a cycle via *ent.<Type>", and the
+// cycle must be detached before marshaling the result (for example, in an
+// HTTP handler). See https://github.com/ent/ent/issues/4449.
+func JSONMarshal(t *testing.T, client *ent.Client) {
+	ctx := context.Background()
+	require := require.New(t)
+
+	a8m := client.User.Create().SetName("a8m").SetAge(30).SaveX(ctx)
+	client.Card.Create().SetNumber("102030").SetOwner(a8m).SaveX(ctx)
+
+	// With the bidiedges feature-flag enabled, eager-loading sets a two-way
+	// reference between the owner and its card, and encoding/json refuses to
+	// marshal the cyclic graph.
+	u, err := client.User.Query().WithCard().Only(ctx)
+	require.NoError(err)
+	require.NotNil(u.Edges.Card)
+	require.Equal(a8m.ID, u.Edges.Card.Edges.Owner.ID)
+	// The eager-loaded inverse edge points back at the eager-loaded parent.
+	require.Same(u.Edges.Card.Edges.Owner, u)
+	_, err = json.Marshal(u)
+	require.Error(err)
+	require.Contains(err.Error(), "encountered a cycle via *ent.User")
+
+	// Detaching the circular (inverse) references before marshaling resolves
+	// the error.
+	u.Edges.Card.Edges.Owner = nil
+	b, err := json.Marshal(u)
+	require.NoError(err)
+	require.Contains(string(b), `"card":{"`)
+
+	// The same applies when eager-loading from the other side of the
+	// relation, and to O2M edges.
+	client.Pet.Create().SetName("pedro").SetOwner(a8m).SaveX(ctx)
+	a8m, err = client.User.Query().WithPets().Only(ctx)
+	require.NoError(err)
+	require.Len(a8m.Edges.Pets, 1)
+	require.Equal(a8m, a8m.Edges.Pets[0].Edges.Owner)
+	_, err = json.Marshal(a8m)
+	require.Error(err)
+	require.Contains(err.Error(), "encountered a cycle")
+	for _, p := range a8m.Edges.Pets {
+		p.Edges.Owner = nil
+	}
+	b, err = json.Marshal(a8m)
+	require.NoError(err)
+	require.Contains(string(b), `"pets":[{"`)
 }
 
 func Mutation(t *testing.T, client *ent.Client) {
