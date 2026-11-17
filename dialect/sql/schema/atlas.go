@@ -842,6 +842,23 @@ func (d *db) ExecContext(ctx context.Context, query string, args ...any) (sql.Re
 	return r, nil
 }
 
+// viewFor returns the view definition defined for the migration dialect.
+// Dialects that reuse the PostgreSQL syntax (e.g. GaussDB) fall back to the
+// view defined for PostgreSQL, if no view was defined for them. In case no
+// definition was found for the dialect, the generic ViewAs definition is
+// used, if exists.
+func (a *Atlas) viewFor(t *Table) string {
+	if def := t.Annotation.ViewFor[a.dialect]; def != "" {
+		return def
+	}
+	if dialect.IsPostgresCompatible(a.dialect) {
+		if def := t.Annotation.ViewFor[dialect.Postgres]; def != "" {
+			return def
+		}
+	}
+	return t.Annotation.ViewAs
+}
+
 // tables converts an Ent table slice to an atlas tables.
 func (a *Atlas) realm(tables []*Table) (*schema.Realm, error) {
 	var (
@@ -854,13 +871,10 @@ func (a *Atlas) realm(tables []*Table) (*schema.Realm, error) {
 		}
 		s := sm[et.Schema]
 		if et.View {
-			if et.Annotation == nil || et.Annotation.ViewAs == "" && et.Annotation.ViewFor[a.dialect] == "" {
+			if et.Annotation == nil || a.viewFor(et) == "" {
 				continue // defined externally
 			}
-			def := et.Annotation.ViewFor[a.dialect]
-			if def == "" {
-				def = et.Annotation.ViewAs
-			}
+			def := a.viewFor(et)
 			av := schema.NewView(et.Name, def)
 			if et.Comment != "" {
 				av.SetComment(et.Comment)
@@ -1109,7 +1123,7 @@ func (a *Atlas) setupTables(tables []*Table) {
 // symbol makes sure the symbol length is not longer than the maxlength in the dialect.
 func (a *Atlas) symbol(name string) string {
 	size := 64
-	if a.dialect == dialect.Postgres {
+	if dialect.IsPostgresCompatible(a.dialect) {
 		size = 63
 	}
 	if len(name) <= size {
@@ -1128,6 +1142,8 @@ func (a *Atlas) entDialect(ctx context.Context, drv dialect.Driver) (sqlDialect,
 		d = &SQLite{Driver: drv, WithForeignKeys: a.withForeignKeys}
 	case dialect.Postgres:
 		d = &Postgres{Driver: drv}
+	case dialect.GaussDB:
+		d = &GaussDB{Postgres{Driver: drv, name: dialect.GaussDB}}
 	default:
 		return nil, fmt.Errorf("sql/schema: unsupported dialect %q", a.dialect)
 	}

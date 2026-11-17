@@ -1485,6 +1485,56 @@ AND "users"."id1" < "users"."id2") AND "users"."id1" <= "users"."id2"`, "\n", ""
 	}
 }
 
+// TestBuilder_GaussDB ensures GaussDB shares the PostgreSQL syntax and
+// semantics of the SQL builder.
+func TestBuilder_GaussDB(t *testing.T) {
+	tests := []struct {
+		pg, gaussdb Querier
+	}{
+		{
+			pg:      Dialect(dialect.Postgres).Insert("users").Columns("name").Values("a8m"),
+			gaussdb: Dialect(dialect.GaussDB).Insert("users").Columns("name").Values("a8m"),
+		},
+		{
+			pg:      Dialect(dialect.Postgres).Insert("users").Default(),
+			gaussdb: Dialect(dialect.GaussDB).Insert("users").Default(),
+		},
+		{
+			pg:      Dialect(dialect.Postgres).Insert("users").Columns("id").Values(1).OnConflict(ResolveWithIgnore()),
+			gaussdb: Dialect(dialect.GaussDB).Insert("users").Columns("id").Values(1).OnConflict(ResolveWithIgnore()),
+		},
+		{
+			pg:      Dialect(dialect.Postgres).Update("users").Set("name", "a8m").Where(EQ("name", "a8m")).Returning("id"),
+			gaussdb: Dialect(dialect.GaussDB).Update("users").Set("name", "a8m").Where(EQ("name", "a8m")).Returning("id"),
+		},
+		{
+			pg:      Dialect(dialect.Postgres).Select("name").From(Table("users")).Where(EqualFold("name", "A8M")),
+			gaussdb: Dialect(dialect.GaussDB).Select("name").From(Table("users")).Where(EqualFold("name", "A8M")),
+		},
+		{
+			pg:      Dialect(dialect.Postgres).Select("name").From(Table("users")).Where(ContainsFold("name", "A8M")),
+			gaussdb: Dialect(dialect.GaussDB).Select("name").From(Table("users")).Where(ContainsFold("name", "A8M")),
+		},
+		{
+			pg:      Dialect(dialect.Postgres).Select("name").From(Table("users")).Where(ColumnsHasPrefix("name", "nickname")),
+			gaussdb: Dialect(dialect.GaussDB).Select("name").From(Table("users")).Where(ColumnsHasPrefix("name", "nickname")),
+		},
+		{
+			pg:      Dialect(dialect.Postgres).Select("name").From(Table("users")).ForUpdate(),
+			gaussdb: Dialect(dialect.GaussDB).Select("name").From(Table("users")).ForUpdate(),
+		},
+	}
+	for i, tt := range tests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			pgQuery, pgArgs := tt.pg.Query()
+			gaussdbQuery, gaussdbArgs := tt.gaussdb.Query()
+			require.Equal(t, pgQuery, gaussdbQuery)
+			require.Equal(t, pgArgs, gaussdbArgs)
+			require.Contains(t, gaussdbQuery, `"`)
+		})
+	}
+}
+
 func TestBuilder_Err(t *testing.T) {
 	b := Select("i-")
 	require.NoError(t, b.Err())

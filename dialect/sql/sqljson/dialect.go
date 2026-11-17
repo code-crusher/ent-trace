@@ -188,7 +188,7 @@ func newDriver(name string) (driver, error) {
 		return (*sqlite)(nil), nil
 	case dialect.MySQL:
 		return (*mysql)(nil), nil
-	case dialect.Postgres:
+	case dialect.Postgres, dialect.GaussDB:
 		return (*postgres)(nil), nil
 	default:
 		return nil, fmt.Errorf("sqljson: unknown driver %q", name)

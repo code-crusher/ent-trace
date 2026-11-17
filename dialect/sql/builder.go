@@ -468,7 +468,7 @@ func (i *InsertBuilder) writeDefault(b *Builder) {
 	switch i.Dialect() {
 	case dialect.MySQL:
 		b.WriteString("VALUES ()")
-	case dialect.SQLite, dialect.Postgres:
+	case dialect.SQLite, dialect.Postgres, dialect.GaussDB:
 		b.WriteString("DEFAULT VALUES")
 	}
 }
@@ -482,7 +482,7 @@ func (i *InsertBuilder) writeConflict(b *Builder) {
 		if i.conflict.action.nothing {
 			i.OnConflict(ResolveWithIgnore())
 		}
-	case dialect.SQLite, dialect.Postgres:
+	case dialect.SQLite, dialect.Postgres, dialect.GaussDB:
 		b.WriteString(" ON CONFLICT")
 		switch t := i.conflict.target; {
 		case t.constraint != "" && len(t.columns) != 0:
@@ -1211,7 +1211,7 @@ func (p *Predicate) escapedLikeFold(col, left, substr, right string) *Predicate 
 			// because this how it is defined in dialect/sql/schema.
 			b.Ident(col).WriteString(" COLLATE utf8mb4_general_ci LIKE ")
 			b.Arg(left + strings.ToLower(w) + right)
-		case dialect.Postgres:
+		case dialect.Postgres, dialect.GaussDB:
 			b.Ident(col).WriteString(" ILIKE ")
 			b.Arg(left + strings.ToLower(w) + right)
 		default: // SQLite.
@@ -1260,7 +1260,7 @@ func (p *Predicate) ColumnsHasPrefix(col, prefixC string) *Predicate {
 			b.Ident(col)
 			b.WriteOp(OpLike)
 			b.S("CONCAT(REPLACE(REPLACE(").Ident(prefixC).S(", '_', '\\_'), '%', '\\%'), '%')")
-		case dialect.Postgres, dialect.SQLite:
+		case dialect.Postgres, dialect.SQLite, dialect.GaussDB:
 			b.Ident(col)
 			b.WriteOp(OpLike)
 			b.S("(REPLACE(REPLACE(").Ident(prefixC).S(", '_', '\\_'), '%', '\\%') || '%')")
@@ -1303,7 +1303,7 @@ func (p *Predicate) EqualFold(col, sub string) *Predicate {
 			// because this how it is defined in dialect/sql/schema.
 			b.Ident(col).WriteString(" COLLATE utf8mb4_general_ci = ")
 			b.Arg(strings.ToLower(sub))
-		case dialect.Postgres:
+		case dialect.Postgres, dialect.GaussDB:
 			b.Ident(col).WriteString(" ILIKE ")
 			w, _ := escape(sub)
 			b.Arg(strings.ToLower(w))
@@ -3408,7 +3408,7 @@ func (b Builder) clone() Builder {
 
 // postgres reports if the builder dialect is PostgreSQL.
 func (b Builder) postgres() bool {
-	return b.Dialect() == dialect.Postgres
+	return dialect.IsPostgresCompatible(b.Dialect())
 }
 
 // sqlite reports if the builder dialect is SQLite.

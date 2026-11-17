@@ -7,6 +7,7 @@ package gen
 import (
 	"testing"
 
+	"entgo.io/ent/dialect"
 	"entgo.io/ent/entc/load"
 	"entgo.io/ent/schema/field"
 
@@ -105,6 +106,29 @@ func TestType(t *testing.T) {
 	require.EqualError(err, "schema lowercase name conflicts with Go predeclared identifier \"int\"")
 	_, err = NewType(&Config{Package: "entc/gen"}, &load.Schema{Name: "Value"})
 	require.EqualError(err, "schema name conflicts with ent predeclared identifier \"Value\"")
+}
+
+// TestField_RequiredFor ensures PostgreSQL-compatible dialects (e.g.
+// GaussDB) are not required for fields with a serial schema type, as
+// these types are populated by the database.
+func TestField_RequiredFor(t *testing.T) {
+	newType := func(t *testing.T, st map[string]string) *Type {
+		typ, err := NewType(&Config{Package: "entc/gen", Storage: drivers[0]}, &load.Schema{
+			Name: "T",
+			Fields: []*load.Field{
+				{Name: "counter", Info: &field.TypeInfo{Type: field.TypeInt}, SchemaType: st},
+			},
+		})
+		require.NoError(t, err)
+		require.Len(t, typ.Fields, 1)
+		return typ
+	}
+	typ := newType(t, map[string]string{dialect.Postgres: "serial"})
+	require.ElementsMatch(t, []string{"dialect.SQLite", "dialect.MySQL"}, typ.Fields[0].RequiredFor())
+	typ = newType(t, map[string]string{dialect.GaussDB: "serial"})
+	require.ElementsMatch(t, []string{"dialect.SQLite", "dialect.MySQL", "dialect.Postgres"}, typ.Fields[0].RequiredFor())
+	typ = newType(t, nil)
+	require.ElementsMatch(t, []string{"dialect.SQLite", "dialect.MySQL", "dialect.Postgres", "dialect.GaussDB"}, typ.Fields[0].RequiredFor())
 }
 
 func TestType_Label(t *testing.T) {

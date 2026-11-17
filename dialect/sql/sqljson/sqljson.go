@@ -52,7 +52,7 @@ func ValueIsNull(column string, opts ...Option) *sql.Predicate {
 				b.WriteString("'null'").Comma()
 				path.mysqlPath(b)
 			})
-		case dialect.Postgres:
+		case dialect.Postgres, dialect.GaussDB:
 			valuePath(b, column, append(opts, Cast("jsonb"))...)
 			b.WriteOp(sql.OpEQ).WriteString("'null'::jsonb")
 		case dialect.SQLite:
@@ -70,7 +70,7 @@ func ValueIsNull(column string, opts ...Option) *sql.Predicate {
 func ValueIsNotNull(column string, opts ...Option) *sql.Predicate {
 	return sql.P(func(b *sql.Builder) {
 		switch b.Dialect() {
-		case dialect.Postgres:
+		case dialect.Postgres, dialect.GaussDB:
 			valuePath(b, column, append(opts, Cast("jsonb"))...)
 			b.WriteOp(sql.OpNEQ).WriteString("'null'::jsonb")
 		case dialect.SQLite:
@@ -191,7 +191,7 @@ func ValueContains(column string, arg any, opts ...Option) *sql.Predicate {
 				})
 				b.WriteString(" WHERE ").Ident("value").WriteOp(sql.OpEQ).Arg(arg)
 			})
-		case dialect.Postgres:
+		case dialect.Postgres, dialect.GaussDB:
 			opts = normalizePG(b, arg, opts)
 			path.Cast = "jsonb"
 			path.value(b)
@@ -514,7 +514,7 @@ func (p *PathOptions) value(b *sql.Builder) {
 	switch {
 	case len(p.Path) == 0:
 		b.Ident(p.Ident)
-	case b.Dialect() == dialect.Postgres:
+	case dialect.IsPostgresCompatible(b.Dialect()):
 		if p.Cast != "" {
 			b.WriteByte('(')
 			defer b.WriteString(")::" + p.Cast)
@@ -532,7 +532,7 @@ func (p *PathOptions) value(b *sql.Builder) {
 // value writes the path for getting the length of a JSON value.
 func (p *PathOptions) length(b *sql.Builder) {
 	switch {
-	case b.Dialect() == dialect.Postgres:
+	case dialect.IsPostgresCompatible(b.Dialect()):
 		b.WriteString("JSONB_ARRAY_LENGTH(")
 		p.pgTextPath(b)
 		b.WriteByte(')')
@@ -655,7 +655,7 @@ func ParsePath(dotpath string) ([]string, error) {
 // normalizePG adds cast option to the JSON path is the argument type is
 // not string, in order to avoid "missing type casts" error in Postgres.
 func normalizePG(b *sql.Builder, arg any, opts []Option) []Option {
-	if b.Dialect() != dialect.Postgres {
+	if !dialect.IsPostgresCompatible(b.Dialect()) {
 		return opts
 	}
 	base := []Option{Unquote(true)}

@@ -14,6 +14,25 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+func TestDriver_Dialect(t *testing.T) {
+	for _, tt := range []struct{ name, expected string }{
+		{dialect.MySQL, dialect.MySQL},
+		{dialect.SQLite, dialect.SQLite},
+		{dialect.Postgres, dialect.Postgres},
+		{dialect.GaussDB, dialect.GaussDB},
+		// Drivers wrapped with telemetry drivers.
+		{"mysql-opentelemetry", dialect.MySQL},
+		{"postgres-opentelemetry", dialect.Postgres},
+		{"gaussdb-opentelemetry", dialect.GaussDB},
+		// Unknown drivers are returned as-is.
+		{"unknown", "unknown"},
+	} {
+		t.Run(tt.name, func(t *testing.T) {
+			require.Equal(t, tt.expected, NewDriver(tt.name, Conn{}).Dialect())
+		})
+	}
+}
+
 func TestWithVars(t *testing.T) {
 	db, mock, err := sqlmock.New()
 	require.NoError(t, err)

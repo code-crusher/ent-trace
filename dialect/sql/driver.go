@@ -49,7 +49,7 @@ func (d Driver) DB() *sql.DB {
 // Dialect implements the dialect.Dialect method.
 func (d Driver) Dialect() string {
 	// If the underlying driver is wrapped with a telemetry driver.
-	for _, name := range []string{dialect.MySQL, dialect.SQLite, dialect.Postgres} {
+	for _, name := range []string{dialect.MySQL, dialect.SQLite, dialect.Postgres, dialect.GaussDB} {
 		if strings.HasPrefix(d.dialect, name) {
 			return name
 		}
@@ -214,7 +214,7 @@ func (c Conn) maySetVars(ctx context.Context) (ExecQuerier, func() error, error)
 	for _, s := range sv.vars {
 		if _, ok := seen[s.k]; !ok {
 			switch c.dialect {
-			case dialect.Postgres:
+			case dialect.Postgres, dialect.GaussDB:
 				reset = append(reset, fmt.Sprintf("RESET %s", s.k))
 			case dialect.MySQL:
 				reset = append(reset, fmt.Sprintf("SET %s = NULL", s.k))

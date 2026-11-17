@@ -409,6 +409,63 @@ func TestWritePath(t *testing.T) {
 	}
 }
 
+// TestWritePath_GaussDB ensures GaussDB uses the PostgreSQL JSON syntax.
+func TestWritePath_GaussDB(t *testing.T) {
+	tests := []struct {
+		pg, gaussdb sql.Querier
+	}{
+		{
+			pg: sql.Dialect(dialect.Postgres).
+				Select("*").
+				From(sql.Table("users")).
+				Where(sqljson.ValueEQ("a", 1, sqljson.Path("b", "c", "[1]", "d"), sqljson.Cast("int"))),
+			gaussdb: sql.Dialect(dialect.GaussDB).
+				Select("*").
+				From(sql.Table("users")).
+				Where(sqljson.ValueEQ("a", 1, sqljson.Path("b", "c", "[1]", "d"), sqljson.Cast("int"))),
+		},
+		{
+			pg: sql.Dialect(dialect.Postgres).
+				Select("*").
+				From(sql.Table("users")).
+				Where(sqljson.ValueContains("a", map[string]any{"b": "c"}, sqljson.Path("b"))),
+			gaussdb: sql.Dialect(dialect.GaussDB).
+				Select("*").
+				From(sql.Table("users")).
+				Where(sqljson.ValueContains("a", map[string]any{"b": "c"}, sqljson.Path("b"))),
+		},
+		{
+			pg: sql.Dialect(dialect.Postgres).
+				Select("*").
+				From(sql.Table("users")).
+				Where(sqljson.ValueIsNull("a", sqljson.Path("b"))),
+			gaussdb: sql.Dialect(dialect.GaussDB).
+				Select("*").
+				From(sql.Table("users")).
+				Where(sqljson.ValueIsNull("a", sqljson.Path("b"))),
+		},
+		{
+			pg: sql.Dialect(dialect.Postgres).
+				Select("*").
+				From(sql.Table("users")).
+				OrderExpr(sqljson.LenPath("a", sqljson.Path("b"))),
+			gaussdb: sql.Dialect(dialect.GaussDB).
+				Select("*").
+				From(sql.Table("users")).
+				OrderExpr(sqljson.LenPath("a", sqljson.Path("b"))),
+		},
+	}
+	for i, tt := range tests {
+		t.Run(strconv.Itoa(i), func(t *testing.T) {
+			pgQuery, pgArgs := tt.pg.Query()
+			gaussdbQuery, gaussdbArgs := tt.gaussdb.Query()
+			require.Equal(t, pgQuery, gaussdbQuery)
+			require.Equal(t, pgArgs, gaussdbArgs)
+			require.Contains(t, gaussdbQuery, `"`)
+		})
+	}
+}
+
 func TestParsePath(t *testing.T) {
 	tests := []struct {
 		input    string

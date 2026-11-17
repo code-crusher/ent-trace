@@ -483,7 +483,7 @@ func orderTerms(q, join *sql.Selector, ts []sql.OrderTerm) {
 			}
 			// Unlike MySQL and SQLite, NULL values sort as if larger than any other value. Therefore,
 			// we need to explicitly order NULLs first on ASC and last on DESC unless specified otherwise.
-			switch normalizePG := b.Dialect() == dialect.Postgres && !nullsfirst && !nullslast; {
+			switch normalizePG := dialect.IsPostgresCompatible(b.Dialect()) && !nullsfirst && !nullslast; {
 			case normalizePG && desc:
 				b.WriteString(" DESC NULLS LAST")
 			case normalizePG:

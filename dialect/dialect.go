@@ -19,8 +19,16 @@ const (
 	MySQL    = "mysql"
 	SQLite   = "sqlite3"
 	Postgres = "postgres"
+	GaussDB  = "gaussdb"
 	Gremlin  = "gremlin"
 )
+
+// IsPostgresCompatible reports whether the given dialect uses the PostgreSQL
+// SQL syntax and semantics. GaussDB is derived from PostgreSQL and thus shares
+// its dialect (e.g. "$n" placeholders and double-quoted identifiers).
+func IsPostgresCompatible(name string) bool {
+	return name == Postgres || name == GaussDB
+}
 
 // ExecQuerier wraps the 2 database operations.
 type ExecQuerier interface {

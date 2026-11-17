@@ -1352,9 +1352,18 @@ func (f Field) MutationAppended() string {
 // in case a SchemaType was defined as "serial" for PostgreSQL, but "int" for SQLite.
 func (f Field) RequiredFor() (dialects []string) {
 	seen := make(map[string]struct{})
-	switch f.def.SchemaType[dialect.Postgres] {
-	case postgres.TypeSerial, postgres.TypeBigSerial, postgres.TypeSmallSerial:
-		seen[dialect.Postgres] = struct{}{}
+	// PostgreSQL-compatible dialects (e.g. GaussDB) share the same
+	// serial types, and thus the field is not required for them as well.
+	for _, d := range []string{dialect.Postgres, dialect.GaussDB} {
+		st := f.def.SchemaType[d]
+		if st == "" && d == dialect.GaussDB {
+			// GaussDB falls back to the type defined for PostgreSQL.
+			st = f.def.SchemaType[dialect.Postgres]
+		}
+		switch st {
+		case postgres.TypeSerial, postgres.TypeBigSerial, postgres.TypeSmallSerial:
+			seen[d] = struct{}{}
+		}
 	}
 	switch d := f.Column().Default.(type) {
 	// Static values (or nil) are set by

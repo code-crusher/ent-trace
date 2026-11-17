@@ -326,6 +326,11 @@ CREATE VIEW $pets_without_fur$ ($id$, $name$, $owner_id$) AS SELECT id, name, ow
 		{dialect.Postgres, "13", pg(idx), false},
 		{dialect.Postgres, "14", pg(hashPG), true},
 		{dialect.Postgres, "15", pg(hashPG), true},
+		// GaussDB shares the PostgreSQL syntax and semantics. Its DDL
+		// must be identical to the PostgreSQL one (e.g. no INCLUDE
+		// clause is emitted, as GaussDB does not support it).
+		{dialect.GaussDB, "", pg(idx), false},
+		{dialect.GaussDB, "", pg(hashPG), true},
 	} {
 		n := tt.dialect
 		if tt.version != "" {

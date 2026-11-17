@@ -586,6 +586,17 @@ var drivers = func(v string) map[string]driver {
 			postgres.DefaultDiff,
 			postgres.DefaultPlan,
 		},
+		entdialect.GaussDB: {
+			&GaussDB{
+				Postgres: Postgres{
+					version: v,
+					Driver:  nopDriver{dialect: entdialect.GaussDB},
+					name:    entdialect.GaussDB,
+				},
+			},
+			postgres.DefaultDiff,
+			postgres.DefaultPlan,
+		},
 	}
 }
 

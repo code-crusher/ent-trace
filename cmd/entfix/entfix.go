@@ -27,7 +27,7 @@ type (
 	}
 	// GlobalID represents the 'entfix globalid' command.
 	GlobalID struct {
-		Dialect string `name:"dialect" help:"Database dialect" required:"" enum:"mysql,postgres,sqlite3"`
+		Dialect string `name:"dialect" help:"Database dialect" required:"" enum:"gaussdb,mysql,postgres,sqlite3"`
 		DSN     string `name:"dsn" help:"Data source name" required:""`
 		Path    string `name:"path" help:"Path to the generated ent code" required:""`
 	}

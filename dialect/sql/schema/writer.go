@@ -209,8 +209,7 @@ func (w *WriteDriver) expandArgs(query string, args []any) string {
 }
 
 func (w *WriteDriver) scanPlaceholder() func(string) (int, int) {
-	switch w.Dialect() {
-	case dialect.Postgres:
+	if dialect.IsPostgresCompatible(w.Dialect()) {
 		return func(s string) (int, int) {
 			var i int
 			for i < len(s) && unicode.IsDigit(rune(s[i])) {
@@ -223,17 +222,16 @@ func (w *WriteDriver) scanPlaceholder() func(string) (int, int) {
 			// Placeholders are 1-based.
 			return int(idx) - 1, i
 		}
-	default:
-		idx := -1
-		return func(string) (int, int) {
-			idx++
-			return idx, 0
-		}
+	}
+	idx := -1
+	return func(string) (int, int) {
+		idx++
+		return idx, 0
 	}
 }
 
 func (w *WriteDriver) placeholder() byte {
-	if w.Dialect() == dialect.Postgres {
+	if dialect.IsPostgresCompatible(w.Dialect()) {
 		return '$'
 	}
 	return '?'

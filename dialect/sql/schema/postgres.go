@@ -25,6 +25,48 @@ type Postgres struct {
 	dialect.Driver
 	schema  string
 	version string
+	// name of the dialect. It is empty for PostgreSQL, and set to
+	// dialect.GaussDB for dialects that reuse this implementation.
+	name string
+}
+
+// dialectName returns the name of the dialect handled by this adapter.
+func (d *Postgres) dialectName() string {
+	if d.name != "" {
+		return d.name
+	}
+	return dialect.Postgres
+}
+
+// schemaType returns the schema type defined for this dialect. Dialects that
+// reuse this implementation (e.g. GaussDB) fall back to the type defined for
+// PostgreSQL, if no type was defined for them.
+func (d *Postgres) schemaType(c *Column) string {
+	if c.SchemaType == nil {
+		return ""
+	}
+	if t := c.SchemaType[d.dialectName()]; t != "" {
+		return t
+	}
+	return c.SchemaType[dialect.Postgres]
+}
+
+// idxType returns the index type defined for this dialect. Dialects that
+// reuse this implementation (e.g. GaussDB) fall back to the type defined for
+// PostgreSQL, if no type was defined for them.
+func (d *Postgres) idxType(idx *Index) (string, bool) {
+	if t, ok := indexType(idx, d.dialectName()); ok {
+		return t, true
+	}
+	return indexType(idx, dialect.Postgres)
+}
+
+// supportsIndexInclude reports if the dialect supports the INCLUDE clause in
+// CREATE INDEX (added in PostgreSQL 11). GaussDB is based on PostgreSQL
+// 9.2.4, which does not support this clause, even if a newer version is
+// reported by the server.
+func (d *Postgres) supportsIndexInclude() bool {
+	return d.dialectName() != dialect.GaussDB && compareVersions(d.version, "11.0.0") >= 0
 }
 
 // init loads the Postgres version from the database for later use in the migration process.
@@ -60,7 +102,7 @@ func (d *Postgres) init(ctx context.Context) error {
 
 // tableExist checks if a table exists in the database and current schema.
 func (d *Postgres) tableExist(ctx context.Context, conn dialect.ExecQuerier, name string) (bool, error) {
-	query, args := sql.Dialect(dialect.Postgres).
+	query, args := sql.Dialect(d.dialectName()).
 		Select(sql.Count("*")).From(sql.Table("tables").Schema("information_schema")).
 		Where(sql.And(
 			d.matchSchema(),
@@ -100,8 +142,8 @@ func (d *Postgres) supportsDefault(*Column) bool {
 }
 
 func (d *Postgres) atTypeC(c1 *Column, c2 *schema.Column) error {
-	if c1.SchemaType != nil && c1.SchemaType[dialect.Postgres] != "" {
-		t, err := postgres.ParseType(strings.ToLower(c1.SchemaType[dialect.Postgres]))
+	if st := d.schemaType(c1); st != "" {
+		t, err := postgres.ParseType(strings.ToLower(st))
 		if err != nil {
 			return err
 		}
@@ -232,10 +274,10 @@ func (d *Postgres) atIndex(idx1 *Index, t2 *schema.Table, idx2 *schema.Index) er
 		}
 		idx2.AddParts(part)
 	}
-	if t, ok := indexType(idx1, dialect.Postgres); ok {
+	if t, ok := d.idxType(idx1); ok {
 		idx2.AddAttrs(&postgres.IndexType{T: t})
 	}
-	if ant, supportsInclude := idx1.Annotation, compareVersions(d.version, "11.0.0") >= 0; ant != nil && len(ant.IncludeColumns) > 0 && supportsInclude {
+	if ant, supportsInclude := idx1.Annotation, d.supportsIndexInclude(); ant != nil && len(ant.IncludeColumns) > 0 && supportsInclude {
 		columns := make([]*schema.Column, len(ant.IncludeColumns))
 		for i, ic := range ant.IncludeColumns {
 			c, ok := t2.Column(ic)
