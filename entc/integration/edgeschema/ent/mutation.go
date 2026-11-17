@@ -15,10 +15,12 @@ import (
 
 	"entgo.io/ent"
 	"entgo.io/ent/entc/integration/edgeschema/ent/attachedfile"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/file"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
 	"entgo.io/ent/entc/integration/edgeschema/ent/grouptag"
+	"entgo.io/ent/entc/integration/edgeschema/ent/hotel"
 	"entgo.io/ent/entc/integration/edgeschema/ent/process"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationshipinfo"
@@ -44,10 +46,12 @@ const (
 
 	// Node types.
 	TypeAttachedFile     = "AttachedFile"
+	TypeBooking          = "Booking"
 	TypeFile             = "File"
 	TypeFriendship       = "Friendship"
 	TypeGroup            = "Group"
 	TypeGroupTag         = "GroupTag"
+	TypeHotel            = "Hotel"
 	TypeProcess          = "Process"
 	TypeRelationship     = "Relationship"
 	TypeRelationshipInfo = "RelationshipInfo"
@@ -231,6 +235,177 @@ func (m *AttachedFileMutation) OldField(ctx context.Context, name string) (ent.V
 		return m.OldProcID(ctx)
 	}
 	return nil, fmt.Errorf("unknown AttachedFile field %s", name)
+}
+
+// BookingMutation represents an operation that mutates the Booking nodes in the graph.
+type BookingMutation struct {
+	booking.Mutation
+	config
+	id       *int
+	done     bool
+	oldValue func(context.Context) (*Booking, error)
+}
+
+var _ ent.Mutation = (*BookingMutation)(nil)
+
+// bookingOption allows management of the mutation configuration using functional options.
+type bookingOption func(*BookingMutation)
+
+// newBookingMutation creates new mutation for the Booking entity.
+func newBookingMutation(c config, op Op, opts ...bookingOption) *BookingMutation {
+	m := &BookingMutation{
+		Mutation: *booking.NewMutation(op),
+		config:   c,
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *BookingMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// withBookingID sets the ID field of the mutation.
+func withBookingID(id int) bookingOption {
+	return func(m *BookingMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Booking
+		)
+		m.oldValue = func(ctx context.Context) (*Booking, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Booking.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withBooking sets the old Booking of the mutation.
+func withBooking(node *Booking) bookingOption {
+	return func(m *BookingMutation) {
+		m.oldValue = func(context.Context) (*Booking, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m BookingMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m BookingMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *BookingMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.Op().Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.Op().Is(OpUpdate | OpDelete):
+		return m.Client().Booking.Query().Where(m.Predicates()...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.Op())
+	}
+}
+
+// OldBookedAt returns the old "booked_at" field's value of the Booking entity.
+// If the Booking object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookingMutation) OldBookedAt(ctx context.Context) (v time.Time, err error) {
+	if !m.Op().Is(OpUpdateOne) {
+		return v, errors.New("OldBookedAt is only allowed on UpdateOne operations")
+	}
+	if _, exists := m.ID(); !exists || m.oldValue == nil {
+		return v, errors.New("OldBookedAt requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldBookedAt: %w", err)
+	}
+	return oldValue.BookedAt, nil
+}
+
+// OldUserID returns the old "user_id" field's value of the Booking entity.
+// If the Booking object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookingMutation) OldUserID(ctx context.Context) (v int, err error) {
+	if !m.Op().Is(OpUpdateOne) {
+		return v, errors.New("OldUserID is only allowed on UpdateOne operations")
+	}
+	if _, exists := m.ID(); !exists || m.oldValue == nil {
+		return v, errors.New("OldUserID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldUserID: %w", err)
+	}
+	return oldValue.UserID, nil
+}
+
+// OldHotelID returns the old "hotel_id" field's value of the Booking entity.
+// If the Booking object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *BookingMutation) OldHotelID(ctx context.Context) (v int, err error) {
+	if !m.Op().Is(OpUpdateOne) {
+		return v, errors.New("OldHotelID is only allowed on UpdateOne operations")
+	}
+	if _, exists := m.ID(); !exists || m.oldValue == nil {
+		return v, errors.New("OldHotelID requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldHotelID: %w", err)
+	}
+	return oldValue.HotelID, nil
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *BookingMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case booking.FieldBookedAt:
+		return m.OldBookedAt(ctx)
+	case booking.FieldUserID:
+		return m.OldUserID(ctx)
+	case booking.FieldHotelID:
+		return m.OldHotelID(ctx)
+	}
+	return nil, fmt.Errorf("unknown Booking field %s", name)
 }
 
 // FileMutation represents an operation that mutates the File nodes in the graph.
@@ -839,6 +1014,139 @@ func (m *GroupTagMutation) OldField(ctx context.Context, name string) (ent.Value
 		return m.OldGroupID(ctx)
 	}
 	return nil, fmt.Errorf("unknown GroupTag field %s", name)
+}
+
+// HotelMutation represents an operation that mutates the Hotel nodes in the graph.
+type HotelMutation struct {
+	hotel.Mutation
+	config
+	id       *int
+	done     bool
+	oldValue func(context.Context) (*Hotel, error)
+}
+
+var _ ent.Mutation = (*HotelMutation)(nil)
+
+// hotelOption allows management of the mutation configuration using functional options.
+type hotelOption func(*HotelMutation)
+
+// newHotelMutation creates new mutation for the Hotel entity.
+func newHotelMutation(c config, op Op, opts ...hotelOption) *HotelMutation {
+	m := &HotelMutation{
+		Mutation: *hotel.NewMutation(op),
+		config:   c,
+	}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
+}
+
+// ID returns the ID value in the mutation. Note that the ID is only available
+// if it was provided to the builder or after it was returned from the database.
+func (m *HotelMutation) ID() (id int, exists bool) {
+	if m.id == nil {
+		return
+	}
+	return *m.id, true
+}
+
+// withHotelID sets the ID field of the mutation.
+func withHotelID(id int) hotelOption {
+	return func(m *HotelMutation) {
+		var (
+			err   error
+			once  sync.Once
+			value *Hotel
+		)
+		m.oldValue = func(ctx context.Context) (*Hotel, error) {
+			once.Do(func() {
+				if m.done {
+					err = errors.New("querying old values post mutation is not allowed")
+				} else {
+					value, err = m.Client().Hotel.Get(ctx, id)
+				}
+			})
+			return value, err
+		}
+		m.id = &id
+	}
+}
+
+// withHotel sets the old Hotel of the mutation.
+func withHotel(node *Hotel) hotelOption {
+	return func(m *HotelMutation) {
+		m.oldValue = func(context.Context) (*Hotel, error) {
+			return node, nil
+		}
+		m.id = &node.ID
+	}
+}
+
+// Client returns a new `ent.Client` from the mutation. If the mutation was
+// executed in a transaction (ent.Tx), a transactional client is returned.
+func (m HotelMutation) Client() *Client {
+	client := &Client{config: m.config}
+	client.init()
+	return client
+}
+
+// Tx returns an `ent.Tx` for mutations that were executed in transactions;
+// it returns an error otherwise.
+func (m HotelMutation) Tx() (*Tx, error) {
+	if _, ok := m.driver.(*txDriver); !ok {
+		return nil, errors.New("ent: mutation is not running in a transaction")
+	}
+	tx := &Tx{config: m.config}
+	tx.init()
+	return tx, nil
+}
+
+// IDs queries the database and returns the entity ids that match the mutation's predicate.
+// That means, if the mutation is applied within a transaction with an isolation level such
+// as sql.LevelSerializable, the returned ids match the ids of the rows that will be updated
+// or updated by the mutation.
+func (m *HotelMutation) IDs(ctx context.Context) ([]int, error) {
+	switch {
+	case m.Op().Is(OpUpdateOne | OpDeleteOne):
+		id, exists := m.ID()
+		if exists {
+			return []int{id}, nil
+		}
+		fallthrough
+	case m.Op().Is(OpUpdate | OpDelete):
+		return m.Client().Hotel.Query().Where(m.Predicates()...).IDs(ctx)
+	default:
+		return nil, fmt.Errorf("IDs is not allowed on %s operations", m.Op())
+	}
+}
+
+// OldName returns the old "name" field's value of the Hotel entity.
+// If the Hotel object wasn't provided to the builder, the object is fetched from the database.
+// An error is returned if the mutation operation is not UpdateOne, or the database query fails.
+func (m *HotelMutation) OldName(ctx context.Context) (v string, err error) {
+	if !m.Op().Is(OpUpdateOne) {
+		return v, errors.New("OldName is only allowed on UpdateOne operations")
+	}
+	if _, exists := m.ID(); !exists || m.oldValue == nil {
+		return v, errors.New("OldName requires an ID field in the mutation")
+	}
+	oldValue, err := m.oldValue(ctx)
+	if err != nil {
+		return v, fmt.Errorf("querying old value for OldName: %w", err)
+	}
+	return oldValue.Name, nil
+}
+
+// OldField returns the old value of the field from the database. An error is
+// returned if the mutation operation is not UpdateOne, or the query to the
+// database failed.
+func (m *HotelMutation) OldField(ctx context.Context, name string) (ent.Value, error) {
+	switch name {
+	case hotel.FieldName:
+		return m.OldName(ctx)
+	}
+	return nil, fmt.Errorf("unknown Hotel field %s", name)
 }
 
 // ProcessMutation represents an operation that mutates the Process nodes in the graph.

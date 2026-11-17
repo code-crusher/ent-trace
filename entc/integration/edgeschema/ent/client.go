@@ -21,10 +21,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/entc/integration/edgeschema/ent/attachedfile"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/file"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
 	"entgo.io/ent/entc/integration/edgeschema/ent/grouptag"
+	"entgo.io/ent/entc/integration/edgeschema/ent/hotel"
 	"entgo.io/ent/entc/integration/edgeschema/ent/process"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationshipinfo"
@@ -46,6 +48,8 @@ type Client struct {
 	Schema *migrate.Schema
 	// AttachedFile is the client for interacting with the AttachedFile builders.
 	AttachedFile *AttachedFileClient
+	// Booking is the client for interacting with the Booking builders.
+	Booking *BookingClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -54,6 +58,8 @@ type Client struct {
 	Group *GroupClient
 	// GroupTag is the client for interacting with the GroupTag builders.
 	GroupTag *GroupTagClient
+	// Hotel is the client for interacting with the Hotel builders.
+	Hotel *HotelClient
 	// Process is the client for interacting with the Process builders.
 	Process *ProcessClient
 	// Relationship is the client for interacting with the Relationship builders.
@@ -90,10 +96,12 @@ func NewClient(opts ...Option) *Client {
 func (c *Client) init() {
 	c.Schema = migrate.NewSchema(c.driver)
 	c.AttachedFile = NewAttachedFileClient(c.config)
+	c.Booking = NewBookingClient(c.config)
 	c.File = NewFileClient(c.config)
 	c.Friendship = NewFriendshipClient(c.config)
 	c.Group = NewGroupClient(c.config)
 	c.GroupTag = NewGroupTagClient(c.config)
+	c.Hotel = NewHotelClient(c.config)
 	c.Process = NewProcessClient(c.config)
 	c.Relationship = NewRelationshipClient(c.config)
 	c.RelationshipInfo = NewRelationshipInfoClient(c.config)
@@ -199,10 +207,12 @@ func (c *Client) Tx(ctx context.Context) (*Tx, error) {
 		ctx:              ctx,
 		config:           cfg,
 		AttachedFile:     NewAttachedFileClient(cfg),
+		Booking:          NewBookingClient(cfg),
 		File:             NewFileClient(cfg),
 		Friendship:       NewFriendshipClient(cfg),
 		Group:            NewGroupClient(cfg),
 		GroupTag:         NewGroupTagClient(cfg),
+		Hotel:            NewHotelClient(cfg),
 		Process:          NewProcessClient(cfg),
 		Relationship:     NewRelationshipClient(cfg),
 		RelationshipInfo: NewRelationshipInfoClient(cfg),
@@ -235,10 +245,12 @@ func (c *Client) BeginTx(ctx context.Context, opts *sql.TxOptions) (*Tx, error) 
 		ctx:              ctx,
 		config:           cfg,
 		AttachedFile:     NewAttachedFileClient(cfg),
+		Booking:          NewBookingClient(cfg),
 		File:             NewFileClient(cfg),
 		Friendship:       NewFriendshipClient(cfg),
 		Group:            NewGroupClient(cfg),
 		GroupTag:         NewGroupTagClient(cfg),
+		Hotel:            NewHotelClient(cfg),
 		Process:          NewProcessClient(cfg),
 		Relationship:     NewRelationshipClient(cfg),
 		RelationshipInfo: NewRelationshipInfoClient(cfg),
@@ -280,9 +292,9 @@ func (c *Client) Close() error {
 // In order to add hooks to a specific client, call: `client.Node.Use(...)`.
 func (c *Client) Use(hooks ...Hook) {
 	for _, n := range []interface{ Use(...Hook) }{
-		c.AttachedFile, c.File, c.Friendship, c.Group, c.GroupTag, c.Process,
-		c.Relationship, c.RelationshipInfo, c.Role, c.RoleUser, c.Tag, c.Tweet,
-		c.TweetLike, c.TweetTag, c.User, c.UserGroup, c.UserTweet,
+		c.AttachedFile, c.Booking, c.File, c.Friendship, c.Group, c.GroupTag, c.Hotel,
+		c.Process, c.Relationship, c.RelationshipInfo, c.Role, c.RoleUser, c.Tag,
+		c.Tweet, c.TweetLike, c.TweetTag, c.User, c.UserGroup, c.UserTweet,
 	} {
 		n.Use(hooks...)
 	}
@@ -292,9 +304,9 @@ func (c *Client) Use(hooks ...Hook) {
 // In order to add interceptors to a specific client, call: `client.Node.Intercept(...)`.
 func (c *Client) Intercept(interceptors ...Interceptor) {
 	for _, n := range []interface{ Intercept(...Interceptor) }{
-		c.AttachedFile, c.File, c.Friendship, c.Group, c.GroupTag, c.Process,
-		c.Relationship, c.RelationshipInfo, c.Role, c.RoleUser, c.Tag, c.Tweet,
-		c.TweetLike, c.TweetTag, c.User, c.UserGroup, c.UserTweet,
+		c.AttachedFile, c.Booking, c.File, c.Friendship, c.Group, c.GroupTag, c.Hotel,
+		c.Process, c.Relationship, c.RelationshipInfo, c.Role, c.RoleUser, c.Tag,
+		c.Tweet, c.TweetLike, c.TweetTag, c.User, c.UserGroup, c.UserTweet,
 	} {
 		n.Intercept(interceptors...)
 	}
@@ -305,6 +317,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 	switch m := m.(type) {
 	case *AttachedFileMutation:
 		return c.AttachedFile.mutate(ctx, m)
+	case *BookingMutation:
+		return c.Booking.mutate(ctx, m)
 	case *FileMutation:
 		return c.File.mutate(ctx, m)
 	case *FriendshipMutation:
@@ -313,6 +327,8 @@ func (c *Client) Mutate(ctx context.Context, m Mutation) (Value, error) {
 		return c.Group.mutate(ctx, m)
 	case *GroupTagMutation:
 		return c.GroupTag.mutate(ctx, m)
+	case *HotelMutation:
+		return c.Hotel.mutate(ctx, m)
 	case *ProcessMutation:
 		return c.Process.mutate(ctx, m)
 	case *RelationshipMutation:
@@ -504,6 +520,171 @@ func (c *AttachedFileClient) mutate(ctx context.Context, m *AttachedFileMutation
 		return (&AttachedFileDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown AttachedFile mutation op: %q", m.Op())
+	}
+}
+
+// BookingClient is a client for the Booking schema.
+type BookingClient struct {
+	config
+}
+
+// NewBookingClient returns a client for the Booking from the given config.
+func NewBookingClient(c config) *BookingClient {
+	return &BookingClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `booking.Hooks(f(g(h())))`.
+func (c *BookingClient) Use(hooks ...Hook) {
+	c.hooks.Booking = append(c.hooks.Booking, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `booking.Intercept(f(g(h())))`.
+func (c *BookingClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Booking = append(c.inters.Booking, interceptors...)
+}
+
+// Create returns a builder for creating a Booking entity.
+func (c *BookingClient) Create() *BookingCreate {
+	mutation := newBookingMutation(c.config, OpCreate)
+	return &BookingCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Booking entities.
+func (c *BookingClient) CreateBulk(builders ...*BookingCreate) *BookingCreateBulk {
+	return &BookingCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *BookingClient) MapCreateBulk(slice any, setFunc func(*BookingCreate, int)) *BookingCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &BookingCreateBulk{err: fmt.Errorf("calling to BookingClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*BookingCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &BookingCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Booking.
+func (c *BookingClient) Update() *BookingUpdate {
+	mutation := newBookingMutation(c.config, OpUpdate)
+	return &BookingUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *BookingClient) UpdateOne(_m *Booking) *BookingUpdateOne {
+	mutation := newBookingMutation(c.config, OpUpdateOne, withBooking(_m))
+	return &BookingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *BookingClient) UpdateOneID(id int) *BookingUpdateOne {
+	mutation := newBookingMutation(c.config, OpUpdateOne, withBookingID(id))
+	return &BookingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Booking.
+func (c *BookingClient) Delete() *BookingDelete {
+	mutation := newBookingMutation(c.config, OpDelete)
+	return &BookingDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *BookingClient) DeleteOne(_m *Booking) *BookingDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *BookingClient) DeleteOneID(id int) *BookingDeleteOne {
+	builder := c.Delete().Where(booking.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.SetOp(OpDeleteOne)
+	return &BookingDeleteOne{builder}
+}
+
+// Query returns a query builder for Booking.
+func (c *BookingClient) Query() *BookingQuery {
+	return &BookingQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeBooking},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Booking entity by its id.
+func (c *BookingClient) Get(ctx context.Context, id int) (*Booking, error) {
+	return c.Query().Where(booking.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *BookingClient) GetX(ctx context.Context, id int) *Booking {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryUser queries the user edge of a Booking.
+func (c *BookingClient) QueryUser(_m *Booking) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(booking.Table, booking.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, booking.UserTable, booking.UserColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryHotel queries the hotel edge of a Booking.
+func (c *BookingClient) QueryHotel(_m *Booking) *HotelQuery {
+	query := (&HotelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(booking.Table, booking.FieldID, id),
+			sqlgraph.To(hotel.Table, hotel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2O, false, booking.HotelTable, booking.HotelColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *BookingClient) Hooks() []Hook {
+	return c.hooks.Booking
+}
+
+// Interceptors returns the client interceptors.
+func (c *BookingClient) Interceptors() []Interceptor {
+	return c.inters.Booking
+}
+
+func (c *BookingClient) mutate(ctx context.Context, m *BookingMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&BookingCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&BookingUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&BookingUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&BookingDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Booking mutation op: %q", m.Op())
 	}
 }
 
@@ -1180,6 +1361,171 @@ func (c *GroupTagClient) mutate(ctx context.Context, m *GroupTagMutation) (Value
 		return (&GroupTagDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
 	default:
 		return nil, fmt.Errorf("ent: unknown GroupTag mutation op: %q", m.Op())
+	}
+}
+
+// HotelClient is a client for the Hotel schema.
+type HotelClient struct {
+	config
+}
+
+// NewHotelClient returns a client for the Hotel from the given config.
+func NewHotelClient(c config) *HotelClient {
+	return &HotelClient{config: c}
+}
+
+// Use adds a list of mutation hooks to the hooks stack.
+// A call to `Use(f, g, h)` equals to `hotel.Hooks(f(g(h())))`.
+func (c *HotelClient) Use(hooks ...Hook) {
+	c.hooks.Hotel = append(c.hooks.Hotel, hooks...)
+}
+
+// Intercept adds a list of query interceptors to the interceptors stack.
+// A call to `Intercept(f, g, h)` equals to `hotel.Intercept(f(g(h())))`.
+func (c *HotelClient) Intercept(interceptors ...Interceptor) {
+	c.inters.Hotel = append(c.inters.Hotel, interceptors...)
+}
+
+// Create returns a builder for creating a Hotel entity.
+func (c *HotelClient) Create() *HotelCreate {
+	mutation := newHotelMutation(c.config, OpCreate)
+	return &HotelCreate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// CreateBulk returns a builder for creating a bulk of Hotel entities.
+func (c *HotelClient) CreateBulk(builders ...*HotelCreate) *HotelCreateBulk {
+	return &HotelCreateBulk{config: c.config, builders: builders}
+}
+
+// MapCreateBulk creates a bulk creation builder from the given slice. For each item in the slice, the function creates
+// a builder and applies setFunc on it.
+func (c *HotelClient) MapCreateBulk(slice any, setFunc func(*HotelCreate, int)) *HotelCreateBulk {
+	rv := reflect.ValueOf(slice)
+	if rv.Kind() != reflect.Slice {
+		return &HotelCreateBulk{err: fmt.Errorf("calling to HotelClient.MapCreateBulk with wrong type %T, need slice", slice)}
+	}
+	builders := make([]*HotelCreate, rv.Len())
+	for i := 0; i < rv.Len(); i++ {
+		builders[i] = c.Create()
+		setFunc(builders[i], i)
+	}
+	return &HotelCreateBulk{config: c.config, builders: builders}
+}
+
+// Update returns an update builder for Hotel.
+func (c *HotelClient) Update() *HotelUpdate {
+	mutation := newHotelMutation(c.config, OpUpdate)
+	return &HotelUpdate{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOne returns an update builder for the given entity.
+func (c *HotelClient) UpdateOne(_m *Hotel) *HotelUpdateOne {
+	mutation := newHotelMutation(c.config, OpUpdateOne, withHotel(_m))
+	return &HotelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// UpdateOneID returns an update builder for the given id.
+func (c *HotelClient) UpdateOneID(id int) *HotelUpdateOne {
+	mutation := newHotelMutation(c.config, OpUpdateOne, withHotelID(id))
+	return &HotelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// Delete returns a delete builder for Hotel.
+func (c *HotelClient) Delete() *HotelDelete {
+	mutation := newHotelMutation(c.config, OpDelete)
+	return &HotelDelete{config: c.config, hooks: c.Hooks(), mutation: mutation}
+}
+
+// DeleteOne returns a builder for deleting the given entity.
+func (c *HotelClient) DeleteOne(_m *Hotel) *HotelDeleteOne {
+	return c.DeleteOneID(_m.ID)
+}
+
+// DeleteOneID returns a builder for deleting the given entity by its id.
+func (c *HotelClient) DeleteOneID(id int) *HotelDeleteOne {
+	builder := c.Delete().Where(hotel.ID(id))
+	builder.mutation.id = &id
+	builder.mutation.SetOp(OpDeleteOne)
+	return &HotelDeleteOne{builder}
+}
+
+// Query returns a query builder for Hotel.
+func (c *HotelClient) Query() *HotelQuery {
+	return &HotelQuery{
+		config: c.config,
+		ctx:    &QueryContext{Type: TypeHotel},
+		inters: c.Interceptors(),
+	}
+}
+
+// Get returns a Hotel entity by its id.
+func (c *HotelClient) Get(ctx context.Context, id int) (*Hotel, error) {
+	return c.Query().Where(hotel.ID(id)).Only(ctx)
+}
+
+// GetX is like Get, but panics if an error occurs.
+func (c *HotelClient) GetX(ctx context.Context, id int) *Hotel {
+	obj, err := c.Get(ctx, id)
+	if err != nil {
+		panic(err)
+	}
+	return obj
+}
+
+// QueryGuests queries the guests edge of a Hotel.
+func (c *HotelClient) QueryGuests(_m *Hotel) *UserQuery {
+	query := (&UserClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hotel.Table, hotel.FieldID, id),
+			sqlgraph.To(user.Table, user.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, true, hotel.GuestsTable, hotel.GuestsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBookings queries the bookings edge of a Hotel.
+func (c *HotelClient) QueryBookings(_m *Hotel) *BookingQuery {
+	query := (&BookingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(hotel.Table, hotel.FieldID, id),
+			sqlgraph.To(booking.Table, booking.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, hotel.BookingsTable, hotel.BookingsColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// Hooks returns the client hooks.
+func (c *HotelClient) Hooks() []Hook {
+	return c.hooks.Hotel
+}
+
+// Interceptors returns the client interceptors.
+func (c *HotelClient) Interceptors() []Interceptor {
+	return c.inters.Hotel
+}
+
+func (c *HotelClient) mutate(ctx context.Context, m *HotelMutation) (Value, error) {
+	switch m.Op() {
+	case OpCreate:
+		return (&HotelCreate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdate:
+		return (&HotelUpdate{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpUpdateOne:
+		return (&HotelUpdateOne{config: c.config, hooks: c.Hooks(), mutation: m}).Save(ctx)
+	case OpDelete, OpDeleteOne:
+		return (&HotelDelete{config: c.config, hooks: c.Hooks(), mutation: m}).Exec(ctx)
+	default:
+		return nil, fmt.Errorf("ent: unknown Hotel mutation op: %q", m.Op())
 	}
 }
 
@@ -2798,6 +3144,22 @@ func (c *UserClient) QueryRoles(_m *User) *RoleQuery {
 	return query
 }
 
+// QueryHotelBookings queries the hotel_bookings edge of a User.
+func (c *UserClient) QueryHotelBookings(_m *User) *HotelQuery {
+	query := (&HotelClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(hotel.Table, hotel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.HotelBookingsTable, user.HotelBookingsPrimaryKey...),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
 // QueryJoinedGroups queries the joined_groups edge of a User.
 func (c *UserClient) QueryJoinedGroups(_m *User) *UserGroupQuery {
 	query := (&UserGroupClient{config: c.config}).Query()
@@ -2887,6 +3249,22 @@ func (c *UserClient) QueryRolesUsers(_m *User) *RoleUserQuery {
 			sqlgraph.From(user.Table, user.FieldID, id),
 			sqlgraph.To(roleuser.Table, roleuser.UserColumn),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.RolesUsersTable, user.RolesUsersColumn),
+		)
+		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
+		return fromV, nil
+	}
+	return query
+}
+
+// QueryBookingEdges queries the booking_edges edge of a User.
+func (c *UserClient) QueryBookingEdges(_m *User) *BookingQuery {
+	query := (&BookingClient{config: c.config}).Query()
+	query.path = func(context.Context) (fromV *sql.Selector, _ error) {
+		id := _m.ID
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, id),
+			sqlgraph.To(booking.Table, booking.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.BookingEdgesTable, user.BookingEdgesColumn),
 		)
 		fromV = sqlgraph.Neighbors(_m.driver.Dialect(), step)
 		return fromV, nil
@@ -3253,13 +3631,13 @@ func (c *UserTweetClient) mutate(ctx context.Context, m *UserTweetMutation) (Val
 // hooks and interceptors per client, for fast access.
 type (
 	hooks struct {
-		AttachedFile, File, Friendship, Group, GroupTag, Process, Relationship,
-		RelationshipInfo, Role, RoleUser, Tag, Tweet, TweetLike, TweetTag, User,
-		UserGroup, UserTweet []ent.Hook
+		AttachedFile, Booking, File, Friendship, Group, GroupTag, Hotel, Process,
+		Relationship, RelationshipInfo, Role, RoleUser, Tag, Tweet, TweetLike,
+		TweetTag, User, UserGroup, UserTweet []ent.Hook
 	}
 	inters struct {
-		AttachedFile, File, Friendship, Group, GroupTag, Process, Relationship,
-		RelationshipInfo, Role, RoleUser, Tag, Tweet, TweetLike, TweetTag, User,
-		UserGroup, UserTweet []ent.Interceptor
+		AttachedFile, Booking, File, Friendship, Group, GroupTag, Hotel, Process,
+		Relationship, RelationshipInfo, Role, RoleUser, Tag, Tweet, TweetLike,
+		TweetTag, User, UserGroup, UserTweet []ent.Interceptor
 	}
 )

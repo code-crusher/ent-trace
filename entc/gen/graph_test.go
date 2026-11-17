@@ -239,6 +239,72 @@ func TestNewGraphThroughInvalidRel(t *testing.T) {
 	require.EqualError(t, err, `entc/gen: resolving edges: edge T1.groups Through("groups_edge", T2.Type) is allowed only on M2M edges, but got: "O2O"`)
 }
 
+func TestNewGraphEdgeSchemaNonUniqueIndex(t *testing.T) {
+	newSchemas := func(indexes []*load.Index) []*load.Schema {
+		return []*load.Schema{
+			{
+				Name: "User",
+				Edges: []*load.Edge{
+					{Name: "hotels", Type: "Hotel", Through: &struct{ N, T string }{N: "bookings", T: "Booking"}},
+				},
+			},
+			{
+				Name: "Hotel",
+				Edges: []*load.Edge{
+					{Name: "guests", Type: "User", Inverse: true, RefName: "hotels", Through: &struct{ N, T string }{N: "bookings", T: "Booking"}},
+				},
+			},
+			{
+				Name: "Booking",
+				Fields: []*load.Field{
+					{Name: "booked_at", Info: &field.TypeInfo{Type: field.TypeTime}},
+					{Name: "user_id", Info: &field.TypeInfo{Type: field.TypeInt}},
+					{Name: "hotel_id", Info: &field.TypeInfo{Type: field.TypeInt}},
+				},
+				Edges: []*load.Edge{
+					{Name: "user", Type: "User", Field: "user_id", Unique: true, Required: true},
+					{Name: "hotel", Type: "Hotel", Field: "hotel_id", Unique: true, Required: true},
+				},
+				Indexes: indexes,
+			},
+		}
+	}
+	// edgeSchemaIndexes returns the indexes defined on the two edge-field columns
+	// (user_id, hotel_id) in either order.
+	edgeSchemaIndexes := func(node *Type) []*Index {
+		var indexes []*Index
+		for _, idx := range node.Indexes {
+			if len(idx.Columns) != 2 {
+				continue
+			}
+			same := idx.Columns[0] == "user_id" && idx.Columns[1] == "hotel_id" ||
+				idx.Columns[0] == "hotel_id" && idx.Columns[1] == "user_id"
+			if same {
+				indexes = append(indexes, idx)
+			}
+		}
+		return indexes
+	}
+	// By default, an edge schema with an ID field gets a unique index on the two edge-fields.
+	g, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, newSchemas(nil)...)
+	require.NoError(t, err)
+	booking, ok := g.typ("Booking")
+	require.True(t, ok)
+	indexes := edgeSchemaIndexes(booking)
+	require.Len(t, indexes, 1, "expected an auto-generated index on (user_id, hotel_id)")
+	require.True(t, indexes[0].Unique, "expected a unique index by default")
+	// Defining a non-unique index on the same columns should override the default unique index.
+	g, err = NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, newSchemas([]*load.Index{
+		{Unique: false, Fields: []string{"user_id", "hotel_id"}},
+	})...)
+	require.NoError(t, err)
+	booking, ok = g.typ("Booking")
+	require.True(t, ok)
+	indexes = edgeSchemaIndexes(booking)
+	require.Len(t, indexes, 1, "expected only the user-defined index on (user_id, hotel_id)")
+	require.False(t, indexes[0].Unique, "expected the user-defined index to be non-unique")
+}
+
 func TestNewGraphThroughDuplicates(t *testing.T) {
 	_, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]},
 		&load.Schema{

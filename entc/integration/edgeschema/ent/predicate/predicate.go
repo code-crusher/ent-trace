@@ -13,6 +13,9 @@ import (
 // AttachedFile is the predicate function for attachedfile builders.
 type AttachedFile func(*sql.Selector)
 
+// Booking is the predicate function for booking builders.
+type Booking func(*sql.Selector)
+
 // File is the predicate function for file builders.
 type File func(*sql.Selector)
 
@@ -24,6 +27,9 @@ type Group func(*sql.Selector)
 
 // GroupTag is the predicate function for grouptag builders.
 type GroupTag func(*sql.Selector)
+
+// Hotel is the predicate function for hotel builders.
+type Hotel func(*sql.Selector)
 
 // Process is the predicate function for process builders.
 type Process func(*sql.Selector)

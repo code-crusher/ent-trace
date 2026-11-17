@@ -17,38 +17,44 @@ import (
 
 // Mutation represents an operation that mutates the User nodes in the graph.
 type Mutation struct {
-	op                   ent.Op
-	typ                  string
-	name                 *string
-	clearedFields        map[string]struct{}
-	groups               map[int]struct{}
-	removedgroups        map[int]struct{}
-	clearedgroups        bool
-	friends              map[int]struct{}
-	removedfriends       map[int]struct{}
-	clearedfriends       bool
-	relatives            map[int]struct{}
-	removedrelatives     map[int]struct{}
-	clearedrelatives     bool
-	liked_tweets         map[int]struct{}
-	removedliked_tweets  map[int]struct{}
-	clearedliked_tweets  bool
-	tweets               map[int]struct{}
-	removedtweets        map[int]struct{}
-	clearedtweets        bool
-	roles                map[int]struct{}
-	removedroles         map[int]struct{}
-	clearedroles         bool
-	joined_groups        map[int]struct{}
-	removedjoined_groups map[int]struct{}
-	clearedjoined_groups bool
-	friendships          map[int]struct{}
-	removedfriendships   map[int]struct{}
-	clearedfriendships   bool
-	user_tweets          map[int]struct{}
-	removeduser_tweets   map[int]struct{}
-	cleareduser_tweets   bool
-	predicates           []predicate.User
+	op                    ent.Op
+	typ                   string
+	name                  *string
+	clearedFields         map[string]struct{}
+	groups                map[int]struct{}
+	removedgroups         map[int]struct{}
+	clearedgroups         bool
+	friends               map[int]struct{}
+	removedfriends        map[int]struct{}
+	clearedfriends        bool
+	relatives             map[int]struct{}
+	removedrelatives      map[int]struct{}
+	clearedrelatives      bool
+	liked_tweets          map[int]struct{}
+	removedliked_tweets   map[int]struct{}
+	clearedliked_tweets   bool
+	tweets                map[int]struct{}
+	removedtweets         map[int]struct{}
+	clearedtweets         bool
+	roles                 map[int]struct{}
+	removedroles          map[int]struct{}
+	clearedroles          bool
+	hotel_bookings        map[int]struct{}
+	removedhotel_bookings map[int]struct{}
+	clearedhotel_bookings bool
+	joined_groups         map[int]struct{}
+	removedjoined_groups  map[int]struct{}
+	clearedjoined_groups  bool
+	friendships           map[int]struct{}
+	removedfriendships    map[int]struct{}
+	clearedfriendships    bool
+	user_tweets           map[int]struct{}
+	removeduser_tweets    map[int]struct{}
+	cleareduser_tweets    bool
+	booking_edges         map[int]struct{}
+	removedbooking_edges  map[int]struct{}
+	clearedbooking_edges  bool
+	predicates            []predicate.User
 }
 
 // NewMutation creates a new Mutation for the User entity.
@@ -408,6 +414,60 @@ func (m *Mutation) ResetRoles() {
 	m.removedroles = nil
 }
 
+// AddHotelBookingIDs adds the "hotel_bookings" edge to the Hotel entity by ids.
+func (m *Mutation) AddHotelBookingIDs(ids ...int) {
+	if m.hotel_bookings == nil {
+		m.hotel_bookings = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.hotel_bookings[ids[i]] = struct{}{}
+	}
+}
+
+// ClearHotelBookings clears the "hotel_bookings" edge to the Hotel entity.
+func (m *Mutation) ClearHotelBookings() {
+	m.clearedhotel_bookings = true
+}
+
+// HotelBookingsCleared reports if the "hotel_bookings" edge to the Hotel entity was cleared.
+func (m *Mutation) HotelBookingsCleared() bool {
+	return m.clearedhotel_bookings
+}
+
+// RemoveHotelBookingIDs removes the "hotel_bookings" edge to the Hotel entity by IDs.
+func (m *Mutation) RemoveHotelBookingIDs(ids ...int) {
+	if m.removedhotel_bookings == nil {
+		m.removedhotel_bookings = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.hotel_bookings, ids[i])
+		m.removedhotel_bookings[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedHotelBookings returns the removed IDs of the "hotel_bookings" edge to the Hotel entity.
+func (m *Mutation) RemovedHotelBookingsIDs() (ids []int) {
+	for id := range m.removedhotel_bookings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// HotelBookingsIDs returns the "hotel_bookings" edge IDs in the mutation.
+func (m *Mutation) HotelBookingsIDs() (ids []int) {
+	for id := range m.hotel_bookings {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetHotelBookings resets all changes to the "hotel_bookings" edge.
+func (m *Mutation) ResetHotelBookings() {
+	m.hotel_bookings = nil
+	m.clearedhotel_bookings = false
+	m.removedhotel_bookings = nil
+}
+
 // AddJoinedGroupIDs adds the "joined_groups" edge to the UserGroup entity by ids.
 func (m *Mutation) AddJoinedGroupIDs(ids ...int) {
 	if m.joined_groups == nil {
@@ -570,6 +630,60 @@ func (m *Mutation) ResetUserTweets() {
 	m.removeduser_tweets = nil
 }
 
+// AddBookingEdgeIDs adds the "booking_edges" edge to the Booking entity by ids.
+func (m *Mutation) AddBookingEdgeIDs(ids ...int) {
+	if m.booking_edges == nil {
+		m.booking_edges = make(map[int]struct{})
+	}
+	for i := range ids {
+		m.booking_edges[ids[i]] = struct{}{}
+	}
+}
+
+// ClearBookingEdges clears the "booking_edges" edge to the Booking entity.
+func (m *Mutation) ClearBookingEdges() {
+	m.clearedbooking_edges = true
+}
+
+// BookingEdgesCleared reports if the "booking_edges" edge to the Booking entity was cleared.
+func (m *Mutation) BookingEdgesCleared() bool {
+	return m.clearedbooking_edges
+}
+
+// RemoveBookingEdgeIDs removes the "booking_edges" edge to the Booking entity by IDs.
+func (m *Mutation) RemoveBookingEdgeIDs(ids ...int) {
+	if m.removedbooking_edges == nil {
+		m.removedbooking_edges = make(map[int]struct{})
+	}
+	for i := range ids {
+		delete(m.booking_edges, ids[i])
+		m.removedbooking_edges[ids[i]] = struct{}{}
+	}
+}
+
+// RemovedBookingEdges returns the removed IDs of the "booking_edges" edge to the Booking entity.
+func (m *Mutation) RemovedBookingEdgesIDs() (ids []int) {
+	for id := range m.removedbooking_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// BookingEdgesIDs returns the "booking_edges" edge IDs in the mutation.
+func (m *Mutation) BookingEdgesIDs() (ids []int) {
+	for id := range m.booking_edges {
+		ids = append(ids, id)
+	}
+	return
+}
+
+// ResetBookingEdges resets all changes to the "booking_edges" edge.
+func (m *Mutation) ResetBookingEdges() {
+	m.booking_edges = nil
+	m.clearedbooking_edges = false
+	m.removedbooking_edges = nil
+}
+
 // Where appends a list predicates to the Mutation builder.
 func (m *Mutation) Where(ps ...predicate.User) {
 	m.predicates = append(m.predicates, ps...)
@@ -699,7 +813,7 @@ func (m *Mutation) ResetField(name string) error {
 
 // AddedEdges returns all edge names that were set/added in this mutation.
 func (m *Mutation) AddedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 11)
 	if m.groups != nil {
 		edges = append(edges, EdgeGroups)
 	}
@@ -718,6 +832,9 @@ func (m *Mutation) AddedEdges() []string {
 	if m.roles != nil {
 		edges = append(edges, EdgeRoles)
 	}
+	if m.hotel_bookings != nil {
+		edges = append(edges, EdgeHotelBookings)
+	}
 	if m.joined_groups != nil {
 		edges = append(edges, EdgeJoinedGroups)
 	}
@@ -726,6 +843,9 @@ func (m *Mutation) AddedEdges() []string {
 	}
 	if m.user_tweets != nil {
 		edges = append(edges, EdgeUserTweets)
+	}
+	if m.booking_edges != nil {
+		edges = append(edges, EdgeBookingEdges)
 	}
 	return edges
 }
@@ -770,6 +890,12 @@ func (m *Mutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case EdgeHotelBookings:
+		ids := make([]ent.Value, 0, len(m.hotel_bookings))
+		for id := range m.hotel_bookings {
+			ids = append(ids, id)
+		}
+		return ids
 	case EdgeJoinedGroups:
 		ids := make([]ent.Value, 0, len(m.joined_groups))
 		for id := range m.joined_groups {
@@ -788,13 +914,19 @@ func (m *Mutation) AddedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case EdgeBookingEdges:
+		ids := make([]ent.Value, 0, len(m.booking_edges))
+		for id := range m.booking_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // RemovedEdges returns all edge names that were removed in this mutation.
 func (m *Mutation) RemovedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 11)
 	if m.removedgroups != nil {
 		edges = append(edges, EdgeGroups)
 	}
@@ -813,6 +945,9 @@ func (m *Mutation) RemovedEdges() []string {
 	if m.removedroles != nil {
 		edges = append(edges, EdgeRoles)
 	}
+	if m.removedhotel_bookings != nil {
+		edges = append(edges, EdgeHotelBookings)
+	}
 	if m.removedjoined_groups != nil {
 		edges = append(edges, EdgeJoinedGroups)
 	}
@@ -821,6 +956,9 @@ func (m *Mutation) RemovedEdges() []string {
 	}
 	if m.removeduser_tweets != nil {
 		edges = append(edges, EdgeUserTweets)
+	}
+	if m.removedbooking_edges != nil {
+		edges = append(edges, EdgeBookingEdges)
 	}
 	return edges
 }
@@ -865,6 +1003,12 @@ func (m *Mutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case EdgeHotelBookings:
+		ids := make([]ent.Value, 0, len(m.removedhotel_bookings))
+		for id := range m.removedhotel_bookings {
+			ids = append(ids, id)
+		}
+		return ids
 	case EdgeJoinedGroups:
 		ids := make([]ent.Value, 0, len(m.removedjoined_groups))
 		for id := range m.removedjoined_groups {
@@ -883,13 +1027,19 @@ func (m *Mutation) RemovedIDs(name string) []ent.Value {
 			ids = append(ids, id)
 		}
 		return ids
+	case EdgeBookingEdges:
+		ids := make([]ent.Value, 0, len(m.removedbooking_edges))
+		for id := range m.removedbooking_edges {
+			ids = append(ids, id)
+		}
+		return ids
 	}
 	return nil
 }
 
 // ClearedEdges returns all edge names that were cleared in this mutation.
 func (m *Mutation) ClearedEdges() []string {
-	edges := make([]string, 0, 9)
+	edges := make([]string, 0, 11)
 	if m.clearedgroups {
 		edges = append(edges, EdgeGroups)
 	}
@@ -908,6 +1058,9 @@ func (m *Mutation) ClearedEdges() []string {
 	if m.clearedroles {
 		edges = append(edges, EdgeRoles)
 	}
+	if m.clearedhotel_bookings {
+		edges = append(edges, EdgeHotelBookings)
+	}
 	if m.clearedjoined_groups {
 		edges = append(edges, EdgeJoinedGroups)
 	}
@@ -916,6 +1069,9 @@ func (m *Mutation) ClearedEdges() []string {
 	}
 	if m.cleareduser_tweets {
 		edges = append(edges, EdgeUserTweets)
+	}
+	if m.clearedbooking_edges {
+		edges = append(edges, EdgeBookingEdges)
 	}
 	return edges
 }
@@ -936,12 +1092,16 @@ func (m *Mutation) EdgeCleared(name string) bool {
 		return m.clearedtweets
 	case EdgeRoles:
 		return m.clearedroles
+	case EdgeHotelBookings:
+		return m.clearedhotel_bookings
 	case EdgeJoinedGroups:
 		return m.clearedjoined_groups
 	case EdgeFriendships:
 		return m.clearedfriendships
 	case EdgeUserTweets:
 		return m.cleareduser_tweets
+	case EdgeBookingEdges:
+		return m.clearedbooking_edges
 	}
 	return false
 }
@@ -976,6 +1136,9 @@ func (m *Mutation) ResetEdge(name string) error {
 	case EdgeRoles:
 		m.ResetRoles()
 		return nil
+	case EdgeHotelBookings:
+		m.ResetHotelBookings()
+		return nil
 	case EdgeJoinedGroups:
 		m.ResetJoinedGroups()
 		return nil
@@ -984,6 +1147,9 @@ func (m *Mutation) ResetEdge(name string) error {
 		return nil
 	case EdgeUserTweets:
 		m.ResetUserTweets()
+		return nil
+	case EdgeBookingEdges:
+		m.ResetBookingEdges()
 		return nil
 	}
 	return fmt.Errorf("unknown User edge %s", name)

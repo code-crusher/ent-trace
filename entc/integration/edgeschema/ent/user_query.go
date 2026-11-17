@@ -16,8 +16,10 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
+	"entgo.io/ent/entc/integration/edgeschema/ent/hotel"
 	"entgo.io/ent/entc/integration/edgeschema/ent/predicate"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/role"
@@ -33,22 +35,24 @@ import (
 // UserQuery is the builder for querying User entities.
 type UserQuery struct {
 	config
-	ctx              *QueryContext
-	order            []user.OrderOption
-	inters           []Interceptor
-	predicates       []predicate.User
-	withGroups       *GroupQuery
-	withFriends      *UserQuery
-	withRelatives    *UserQuery
-	withLikedTweets  *TweetQuery
-	withTweets       *TweetQuery
-	withRoles        *RoleQuery
-	withJoinedGroups *UserGroupQuery
-	withFriendships  *FriendshipQuery
-	withRelationship *RelationshipQuery
-	withLikes        *TweetLikeQuery
-	withUserTweets   *UserTweetQuery
-	withRolesUsers   *RoleUserQuery
+	ctx               *QueryContext
+	order             []user.OrderOption
+	inters            []Interceptor
+	predicates        []predicate.User
+	withGroups        *GroupQuery
+	withFriends       *UserQuery
+	withRelatives     *UserQuery
+	withLikedTweets   *TweetQuery
+	withTweets        *TweetQuery
+	withRoles         *RoleQuery
+	withHotelBookings *HotelQuery
+	withJoinedGroups  *UserGroupQuery
+	withFriendships   *FriendshipQuery
+	withRelationship  *RelationshipQuery
+	withLikes         *TweetLikeQuery
+	withUserTweets    *UserTweetQuery
+	withRolesUsers    *RoleUserQuery
+	withBookingEdges  *BookingQuery
 	// intermediate query (i.e. traversal path).
 	sql  *sql.Selector
 	path func(context.Context) (*sql.Selector, error)
@@ -217,6 +221,28 @@ func (_q *UserQuery) QueryRoles() *RoleQuery {
 	return query
 }
 
+// QueryHotelBookings chains the current query on the "hotel_bookings" edge.
+func (_q *UserQuery) QueryHotelBookings() *HotelQuery {
+	query := (&HotelClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(hotel.Table, hotel.FieldID),
+			sqlgraph.Edge(sqlgraph.M2M, false, user.HotelBookingsTable, user.HotelBookingsPrimaryKey...),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
 // QueryJoinedGroups chains the current query on the "joined_groups" edge.
 func (_q *UserQuery) QueryJoinedGroups() *UserGroupQuery {
 	query := (&UserGroupClient{config: _q.config}).Query()
@@ -342,6 +368,28 @@ func (_q *UserQuery) QueryRolesUsers() *RoleUserQuery {
 			sqlgraph.From(user.Table, user.FieldID, selector),
 			sqlgraph.To(roleuser.Table, roleuser.UserColumn),
 			sqlgraph.Edge(sqlgraph.O2M, true, user.RolesUsersTable, user.RolesUsersColumn),
+		)
+		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
+		return fromU, nil
+	}
+	return query
+}
+
+// QueryBookingEdges chains the current query on the "booking_edges" edge.
+func (_q *UserQuery) QueryBookingEdges() *BookingQuery {
+	query := (&BookingClient{config: _q.config}).Query()
+	query.path = func(ctx context.Context) (fromU *sql.Selector, err error) {
+		if err := _q.prepareQuery(ctx); err != nil {
+			return nil, err
+		}
+		selector := _q.sqlQuery(ctx)
+		if err := selector.Err(); err != nil {
+			return nil, err
+		}
+		step := sqlgraph.NewStep(
+			sqlgraph.From(user.Table, user.FieldID, selector),
+			sqlgraph.To(booking.Table, booking.FieldID),
+			sqlgraph.Edge(sqlgraph.O2M, true, user.BookingEdgesTable, user.BookingEdgesColumn),
 		)
 		fromU = sqlgraph.SetNeighbors(_q.driver.Dialect(), step)
 		return fromU, nil
@@ -536,23 +584,25 @@ func (_q *UserQuery) Clone() *UserQuery {
 		return nil
 	}
 	return &UserQuery{
-		config:           _q.config,
-		ctx:              _q.ctx.Clone(),
-		order:            append([]user.OrderOption{}, _q.order...),
-		inters:           append([]Interceptor{}, _q.inters...),
-		predicates:       append([]predicate.User{}, _q.predicates...),
-		withGroups:       _q.withGroups.Clone(),
-		withFriends:      _q.withFriends.Clone(),
-		withRelatives:    _q.withRelatives.Clone(),
-		withLikedTweets:  _q.withLikedTweets.Clone(),
-		withTweets:       _q.withTweets.Clone(),
-		withRoles:        _q.withRoles.Clone(),
-		withJoinedGroups: _q.withJoinedGroups.Clone(),
-		withFriendships:  _q.withFriendships.Clone(),
-		withRelationship: _q.withRelationship.Clone(),
-		withLikes:        _q.withLikes.Clone(),
-		withUserTweets:   _q.withUserTweets.Clone(),
-		withRolesUsers:   _q.withRolesUsers.Clone(),
+		config:            _q.config,
+		ctx:               _q.ctx.Clone(),
+		order:             append([]user.OrderOption{}, _q.order...),
+		inters:            append([]Interceptor{}, _q.inters...),
+		predicates:        append([]predicate.User{}, _q.predicates...),
+		withGroups:        _q.withGroups.Clone(),
+		withFriends:       _q.withFriends.Clone(),
+		withRelatives:     _q.withRelatives.Clone(),
+		withLikedTweets:   _q.withLikedTweets.Clone(),
+		withTweets:        _q.withTweets.Clone(),
+		withRoles:         _q.withRoles.Clone(),
+		withHotelBookings: _q.withHotelBookings.Clone(),
+		withJoinedGroups:  _q.withJoinedGroups.Clone(),
+		withFriendships:   _q.withFriendships.Clone(),
+		withRelationship:  _q.withRelationship.Clone(),
+		withLikes:         _q.withLikes.Clone(),
+		withUserTweets:    _q.withUserTweets.Clone(),
+		withRolesUsers:    _q.withRolesUsers.Clone(),
+		withBookingEdges:  _q.withBookingEdges.Clone(),
 		// clone intermediate query.
 		sql:  _q.sql.Clone(),
 		path: _q.path,
@@ -625,6 +675,17 @@ func (_q *UserQuery) WithRoles(opts ...func(*RoleQuery)) *UserQuery {
 	return _q
 }
 
+// WithHotelBookings tells the query-builder to eager-load the nodes that are connected to
+// the "hotel_bookings" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithHotelBookings(opts ...func(*HotelQuery)) *UserQuery {
+	query := (&HotelClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withHotelBookings = query
+	return _q
+}
+
 // WithJoinedGroups tells the query-builder to eager-load the nodes that are connected to
 // the "joined_groups" edge. The optional arguments are used to configure the query builder of the edge.
 func (_q *UserQuery) WithJoinedGroups(opts ...func(*UserGroupQuery)) *UserQuery {
@@ -688,6 +749,17 @@ func (_q *UserQuery) WithRolesUsers(opts ...func(*RoleUserQuery)) *UserQuery {
 		opt(query)
 	}
 	_q.withRolesUsers = query
+	return _q
+}
+
+// WithBookingEdges tells the query-builder to eager-load the nodes that are connected to
+// the "booking_edges" edge. The optional arguments are used to configure the query builder of the edge.
+func (_q *UserQuery) WithBookingEdges(opts ...func(*BookingQuery)) *UserQuery {
+	query := (&BookingClient{config: _q.config}).Query()
+	for _, opt := range opts {
+		opt(query)
+	}
+	_q.withBookingEdges = query
 	return _q
 }
 
@@ -775,19 +847,21 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 	var (
 		nodes       = []*User{}
 		_spec       = _q.querySpec()
-		loadedTypes = [12]bool{
+		loadedTypes = [14]bool{
 			_q.withGroups != nil,
 			_q.withFriends != nil,
 			_q.withRelatives != nil,
 			_q.withLikedTweets != nil,
 			_q.withTweets != nil,
 			_q.withRoles != nil,
+			_q.withHotelBookings != nil,
 			_q.withJoinedGroups != nil,
 			_q.withFriendships != nil,
 			_q.withRelationship != nil,
 			_q.withLikes != nil,
 			_q.withUserTweets != nil,
 			_q.withRolesUsers != nil,
+			_q.withBookingEdges != nil,
 		}
 	)
 	_spec.ScanValues = func(columns []string) ([]any, error) {
@@ -850,6 +924,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 			return nil, err
 		}
 	}
+	if query := _q.withHotelBookings; query != nil {
+		if err := _q.loadHotelBookings(ctx, query, nodes,
+			func(n *User) { n.Edges.HotelBookings = []*Hotel{} },
+			func(n *User, e *Hotel) { n.Edges.HotelBookings = append(n.Edges.HotelBookings, e) }); err != nil {
+			return nil, err
+		}
+	}
 	if query := _q.withJoinedGroups; query != nil {
 		if err := _q.loadJoinedGroups(ctx, query, nodes,
 			func(n *User) { n.Edges.JoinedGroups = []*UserGroup{} },
@@ -889,6 +970,13 @@ func (_q *UserQuery) sqlAll(ctx context.Context, hooks ...queryHook) ([]*User, e
 		if err := _q.loadRolesUsers(ctx, query, nodes,
 			func(n *User) { n.Edges.RolesUsers = []*RoleUser{} },
 			func(n *User, e *RoleUser) { n.Edges.RolesUsers = append(n.Edges.RolesUsers, e) }); err != nil {
+			return nil, err
+		}
+	}
+	if query := _q.withBookingEdges; query != nil {
+		if err := _q.loadBookingEdges(ctx, query, nodes,
+			func(n *User) { n.Edges.BookingEdges = []*Booking{} },
+			func(n *User, e *Booking) { n.Edges.BookingEdges = append(n.Edges.BookingEdges, e) }); err != nil {
 			return nil, err
 		}
 	}
@@ -1261,6 +1349,67 @@ func (_q *UserQuery) loadRoles(ctx context.Context, query *RoleQuery, nodes []*U
 	}
 	return nil
 }
+func (_q *UserQuery) loadHotelBookings(ctx context.Context, query *HotelQuery, nodes []*User, init func(*User), assign func(*User, *Hotel)) error {
+	edgeIDs := make([]driver.Value, len(nodes))
+	byID := make(map[int]*User)
+	nids := make(map[int]map[*User]struct{})
+	for i, node := range nodes {
+		edgeIDs[i] = node.ID
+		byID[node.ID] = node
+		if init != nil {
+			init(node)
+		}
+	}
+	query.Where(func(s *sql.Selector) {
+		joinT := sql.Table(user.HotelBookingsTable)
+		s.Join(joinT).On(s.C(hotel.FieldID), joinT.C(user.HotelBookingsPrimaryKey[1]))
+		s.Where(sql.InValues(joinT.C(user.HotelBookingsPrimaryKey[0]), edgeIDs...))
+		columns := s.SelectedColumns()
+		s.Select(joinT.C(user.HotelBookingsPrimaryKey[0]))
+		s.AppendSelect(columns...)
+		s.SetDistinct(false)
+	})
+	if err := query.prepareQuery(ctx); err != nil {
+		return err
+	}
+	qr := QuerierFunc(func(ctx context.Context, q Query) (Value, error) {
+		return query.sqlAll(ctx, func(_ context.Context, spec *sqlgraph.QuerySpec) {
+			assign := spec.Assign
+			values := spec.ScanValues
+			spec.ScanValues = func(columns []string) ([]any, error) {
+				values, err := values(columns[1:])
+				if err != nil {
+					return nil, err
+				}
+				return append([]any{new(sql.NullInt64)}, values...), nil
+			}
+			spec.Assign = func(columns []string, values []any) error {
+				outValue := int(values[0].(*sql.NullInt64).Int64)
+				inValue := int(values[1].(*sql.NullInt64).Int64)
+				if nids[inValue] == nil {
+					nids[inValue] = map[*User]struct{}{byID[outValue]: {}}
+					return assign(columns[1:], values[1:])
+				}
+				nids[inValue][byID[outValue]] = struct{}{}
+				return nil
+			}
+		})
+	})
+	neighbors, err := withInterceptors[[]*Hotel](ctx, query, qr, query.inters)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		nodes, ok := nids[n.ID]
+		if !ok {
+			return fmt.Errorf(`unexpected "hotel_bookings" node returned %v`, n.ID)
+		}
+		for kn := range nodes {
+			assign(kn, n)
+		}
+	}
+	return nil
+}
 func (_q *UserQuery) loadJoinedGroups(ctx context.Context, query *UserGroupQuery, nodes []*User, init func(*User), assign func(*User, *UserGroup)) error {
 	fks := make([]driver.Value, 0, len(nodes))
 	nodeids := make(map[int]*User)
@@ -1436,6 +1585,36 @@ func (_q *UserQuery) loadRolesUsers(ctx context.Context, query *RoleUserQuery, n
 		node, ok := nodeids[fk]
 		if !ok {
 			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n)
+		}
+		assign(node, n)
+	}
+	return nil
+}
+func (_q *UserQuery) loadBookingEdges(ctx context.Context, query *BookingQuery, nodes []*User, init func(*User), assign func(*User, *Booking)) error {
+	fks := make([]driver.Value, 0, len(nodes))
+	nodeids := make(map[int]*User)
+	for i := range nodes {
+		fks = append(fks, nodes[i].ID)
+		nodeids[nodes[i].ID] = nodes[i]
+		if init != nil {
+			init(nodes[i])
+		}
+	}
+	if len(query.ctx.Fields) > 0 {
+		query.ctx.AppendFieldOnce(booking.FieldUserID)
+	}
+	query.Where(predicate.Booking(func(s *sql.Selector) {
+		s.Where(sql.InValues(s.C(user.BookingEdgesColumn), fks...))
+	}))
+	neighbors, err := query.All(ctx)
+	if err != nil {
+		return err
+	}
+	for _, n := range neighbors {
+		fk := n.UserID
+		node, ok := nodeids[fk]
+		if !ok {
+			return fmt.Errorf(`unexpected referenced foreign-key "user_id" returned %v for node %v`, fk, n.ID)
 		}
 		assign(node, n)
 	}

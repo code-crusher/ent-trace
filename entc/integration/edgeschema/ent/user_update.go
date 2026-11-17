@@ -13,8 +13,10 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
+	"entgo.io/ent/entc/integration/edgeschema/ent/hotel"
 	"entgo.io/ent/entc/integration/edgeschema/ent/predicate"
 	"entgo.io/ent/entc/integration/edgeschema/ent/role"
 	"entgo.io/ent/entc/integration/edgeschema/ent/tweet"
@@ -141,6 +143,21 @@ func (_u *UserUpdate) AddRoles(v ...*Role) *UserUpdate {
 	return _u.AddRoleIDs(ids...)
 }
 
+// AddHotelBookingIDs adds the "hotel_bookings" edge to the Hotel entity by IDs.
+func (_u *UserUpdate) AddHotelBookingIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddHotelBookingIDs(ids...)
+	return _u
+}
+
+// AddHotelBookings adds the "hotel_bookings" edges to the Hotel entity.
+func (_u *UserUpdate) AddHotelBookings(v ...*Hotel) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHotelBookingIDs(ids...)
+}
+
 // AddJoinedGroupIDs adds the "joined_groups" edge to the UserGroup entity by IDs.
 func (_u *UserUpdate) AddJoinedGroupIDs(ids ...int) *UserUpdate {
 	_u.mutation.AddJoinedGroupIDs(ids...)
@@ -184,6 +201,21 @@ func (_u *UserUpdate) AddUserTweets(v ...*UserTweet) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.AddUserTweetIDs(ids...)
+}
+
+// AddBookingEdgeIDs adds the "booking_edges" edge to the Booking entity by IDs.
+func (_u *UserUpdate) AddBookingEdgeIDs(ids ...int) *UserUpdate {
+	_u.mutation.AddBookingEdgeIDs(ids...)
+	return _u
+}
+
+// AddBookingEdges adds the "booking_edges" edges to the Booking entity.
+func (_u *UserUpdate) AddBookingEdges(v ...*Booking) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBookingEdgeIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -317,6 +349,27 @@ func (_u *UserUpdate) RemoveRoles(v ...*Role) *UserUpdate {
 	return _u.RemoveRoleIDs(ids...)
 }
 
+// ClearHotelBookings clears all "hotel_bookings" edges to the Hotel entity.
+func (_u *UserUpdate) ClearHotelBookings() *UserUpdate {
+	_u.mutation.ClearHotelBookings()
+	return _u
+}
+
+// RemoveHotelBookingIDs removes the "hotel_bookings" edge to Hotel entities by IDs.
+func (_u *UserUpdate) RemoveHotelBookingIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveHotelBookingIDs(ids...)
+	return _u
+}
+
+// RemoveHotelBookings removes "hotel_bookings" edges to Hotel entities.
+func (_u *UserUpdate) RemoveHotelBookings(v ...*Hotel) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHotelBookingIDs(ids...)
+}
+
 // ClearJoinedGroups clears all "joined_groups" edges to the UserGroup entity.
 func (_u *UserUpdate) ClearJoinedGroups() *UserUpdate {
 	_u.mutation.ClearJoinedGroups()
@@ -378,6 +431,27 @@ func (_u *UserUpdate) RemoveUserTweets(v ...*UserTweet) *UserUpdate {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUserTweetIDs(ids...)
+}
+
+// ClearBookingEdges clears all "booking_edges" edges to the Booking entity.
+func (_u *UserUpdate) ClearBookingEdges() *UserUpdate {
+	_u.mutation.ClearBookingEdges()
+	return _u
+}
+
+// RemoveBookingEdgeIDs removes the "booking_edges" edge to Booking entities by IDs.
+func (_u *UserUpdate) RemoveBookingEdgeIDs(ids ...int) *UserUpdate {
+	_u.mutation.RemoveBookingEdgeIDs(ids...)
+	return _u
+}
+
+// RemoveBookingEdges removes "booking_edges" edges to Booking entities.
+func (_u *UserUpdate) RemoveBookingEdges(v ...*Booking) *UserUpdate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBookingEdgeIDs(ids...)
 }
 
 // Save executes the query and returns the number of nodes affected by the update operation.
@@ -761,6 +835,63 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.HotelBookingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hotel.FieldID, field.TypeInt),
+			},
+		}
+		createE := &BookingCreate{config: _u.config, mutation: newBookingMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHotelBookingsIDs(); len(nodes) > 0 && !_u.mutation.HotelBookingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hotel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &BookingCreate{config: _u.config, mutation: newBookingMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HotelBookingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hotel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &BookingCreate{config: _u.config, mutation: newBookingMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.JoinedGroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -896,6 +1027,51 @@ func (_u *UserUpdate) sqlSave(ctx context.Context) (_node int, err error) {
 		}
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.BookingEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(booking.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBookingEdgesIDs(); len(nodes) > 0 && !_u.mutation.BookingEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(booking.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BookingEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(booking.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _node, err = sqlgraph.UpdateNodes(ctx, _u.driver, _spec); err != nil {
 		if _, ok := err.(*sqlgraph.NotFoundError); ok {
 			err = &NotFoundError{user.Label}
@@ -1020,6 +1196,21 @@ func (_u *UserUpdateOne) AddRoles(v ...*Role) *UserUpdateOne {
 	return _u.AddRoleIDs(ids...)
 }
 
+// AddHotelBookingIDs adds the "hotel_bookings" edge to the Hotel entity by IDs.
+func (_u *UserUpdateOne) AddHotelBookingIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddHotelBookingIDs(ids...)
+	return _u
+}
+
+// AddHotelBookings adds the "hotel_bookings" edges to the Hotel entity.
+func (_u *UserUpdateOne) AddHotelBookings(v ...*Hotel) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddHotelBookingIDs(ids...)
+}
+
 // AddJoinedGroupIDs adds the "joined_groups" edge to the UserGroup entity by IDs.
 func (_u *UserUpdateOne) AddJoinedGroupIDs(ids ...int) *UserUpdateOne {
 	_u.mutation.AddJoinedGroupIDs(ids...)
@@ -1063,6 +1254,21 @@ func (_u *UserUpdateOne) AddUserTweets(v ...*UserTweet) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.AddUserTweetIDs(ids...)
+}
+
+// AddBookingEdgeIDs adds the "booking_edges" edge to the Booking entity by IDs.
+func (_u *UserUpdateOne) AddBookingEdgeIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.AddBookingEdgeIDs(ids...)
+	return _u
+}
+
+// AddBookingEdges adds the "booking_edges" edges to the Booking entity.
+func (_u *UserUpdateOne) AddBookingEdges(v ...*Booking) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.AddBookingEdgeIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -1196,6 +1402,27 @@ func (_u *UserUpdateOne) RemoveRoles(v ...*Role) *UserUpdateOne {
 	return _u.RemoveRoleIDs(ids...)
 }
 
+// ClearHotelBookings clears all "hotel_bookings" edges to the Hotel entity.
+func (_u *UserUpdateOne) ClearHotelBookings() *UserUpdateOne {
+	_u.mutation.ClearHotelBookings()
+	return _u
+}
+
+// RemoveHotelBookingIDs removes the "hotel_bookings" edge to Hotel entities by IDs.
+func (_u *UserUpdateOne) RemoveHotelBookingIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveHotelBookingIDs(ids...)
+	return _u
+}
+
+// RemoveHotelBookings removes "hotel_bookings" edges to Hotel entities.
+func (_u *UserUpdateOne) RemoveHotelBookings(v ...*Hotel) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveHotelBookingIDs(ids...)
+}
+
 // ClearJoinedGroups clears all "joined_groups" edges to the UserGroup entity.
 func (_u *UserUpdateOne) ClearJoinedGroups() *UserUpdateOne {
 	_u.mutation.ClearJoinedGroups()
@@ -1257,6 +1484,27 @@ func (_u *UserUpdateOne) RemoveUserTweets(v ...*UserTweet) *UserUpdateOne {
 		ids[i] = v[i].ID
 	}
 	return _u.RemoveUserTweetIDs(ids...)
+}
+
+// ClearBookingEdges clears all "booking_edges" edges to the Booking entity.
+func (_u *UserUpdateOne) ClearBookingEdges() *UserUpdateOne {
+	_u.mutation.ClearBookingEdges()
+	return _u
+}
+
+// RemoveBookingEdgeIDs removes the "booking_edges" edge to Booking entities by IDs.
+func (_u *UserUpdateOne) RemoveBookingEdgeIDs(ids ...int) *UserUpdateOne {
+	_u.mutation.RemoveBookingEdgeIDs(ids...)
+	return _u
+}
+
+// RemoveBookingEdges removes "booking_edges" edges to Booking entities.
+func (_u *UserUpdateOne) RemoveBookingEdges(v ...*Booking) *UserUpdateOne {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _u.RemoveBookingEdgeIDs(ids...)
 }
 
 // Where appends a list predicates to the UserUpdate builder.
@@ -1670,6 +1918,63 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges.Add = append(_spec.Edges.Add, edge)
 	}
+	if _u.mutation.HotelBookingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hotel.FieldID, field.TypeInt),
+			},
+		}
+		createE := &BookingCreate{config: _u.config, mutation: newBookingMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedHotelBookingsIDs(); len(nodes) > 0 && !_u.mutation.HotelBookingsCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hotel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &BookingCreate{config: _u.config, mutation: newBookingMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.HotelBookingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hotel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &BookingCreate{config: _u.config, mutation: newBookingMutation(_u.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
 	if _u.mutation.JoinedGroupsCleared() {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -1798,6 +2103,51 @@ func (_u *UserUpdateOne) sqlSave(ctx context.Context) (_node *User, err error) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usertweet.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Add = append(_spec.Edges.Add, edge)
+	}
+	if _u.mutation.BookingEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(booking.FieldID, field.TypeInt),
+			},
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.RemovedBookingEdgesIDs(); len(nodes) > 0 && !_u.mutation.BookingEdgesCleared() {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(booking.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges.Clear = append(_spec.Edges.Clear, edge)
+	}
+	if nodes := _u.mutation.BookingEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(booking.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

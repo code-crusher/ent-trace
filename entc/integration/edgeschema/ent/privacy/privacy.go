@@ -139,6 +139,30 @@ func (f AttachedFileMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mu
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.AttachedFileMutation", m)
 }
 
+// The BookingQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type BookingQueryRuleFunc func(context.Context, *ent.BookingQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f BookingQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.BookingQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.BookingQuery", q)
+}
+
+// The BookingMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type BookingMutationRuleFunc func(context.Context, *ent.BookingMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f BookingMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.BookingMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.BookingMutation", m)
+}
+
 // The FileQueryRuleFunc type is an adapter to allow the use of ordinary
 // functions as a query rule.
 type FileQueryRuleFunc func(context.Context, *ent.FileQuery) error
@@ -233,6 +257,30 @@ func (f GroupTagMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutati
 		return f(ctx, m)
 	}
 	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.GroupTagMutation", m)
+}
+
+// The HotelQueryRuleFunc type is an adapter to allow the use of ordinary
+// functions as a query rule.
+type HotelQueryRuleFunc func(context.Context, *ent.HotelQuery) error
+
+// EvalQuery return f(ctx, q).
+func (f HotelQueryRuleFunc) EvalQuery(ctx context.Context, q ent.Query) error {
+	if q, ok := q.(*ent.HotelQuery); ok {
+		return f(ctx, q)
+	}
+	return Denyf("ent/privacy: unexpected query type %T, expect *ent.HotelQuery", q)
+}
+
+// The HotelMutationRuleFunc type is an adapter to allow the use of ordinary
+// functions as a mutation rule.
+type HotelMutationRuleFunc func(context.Context, *ent.HotelMutation) error
+
+// EvalMutation calls f(ctx, m).
+func (f HotelMutationRuleFunc) EvalMutation(ctx context.Context, m ent.Mutation) error {
+	if m, ok := m.(*ent.HotelMutation); ok {
+		return f(ctx, m)
+	}
+	return Denyf("ent/privacy: unexpected mutation type %T, expect *ent.HotelMutation", m)
 }
 
 // The ProcessQueryRuleFunc type is an adapter to allow the use of ordinary
@@ -560,6 +608,8 @@ func queryFilter(q ent.Query) (Filter, error) {
 	switch q := q.(type) {
 	case *ent.AttachedFileQuery:
 		return q.Filter(), nil
+	case *ent.BookingQuery:
+		return q.Filter(), nil
 	case *ent.FileQuery:
 		return q.Filter(), nil
 	case *ent.FriendshipQuery:
@@ -567,6 +617,8 @@ func queryFilter(q ent.Query) (Filter, error) {
 	case *ent.GroupQuery:
 		return q.Filter(), nil
 	case *ent.GroupTagQuery:
+		return q.Filter(), nil
+	case *ent.HotelQuery:
 		return q.Filter(), nil
 	case *ent.ProcessQuery:
 		return q.Filter(), nil
@@ -601,6 +653,8 @@ func mutationFilter(m ent.Mutation) (Filter, error) {
 	switch m := m.(type) {
 	case *ent.AttachedFileMutation:
 		return m.Filter(), nil
+	case *ent.BookingMutation:
+		return m.Filter(), nil
 	case *ent.FileMutation:
 		return m.Filter(), nil
 	case *ent.FriendshipMutation:
@@ -608,6 +662,8 @@ func mutationFilter(m ent.Mutation) (Filter, error) {
 	case *ent.GroupMutation:
 		return m.Filter(), nil
 	case *ent.GroupTagMutation:
+		return m.Filter(), nil
+	case *ent.HotelMutation:
 		return m.Filter(), nil
 	case *ent.ProcessMutation:
 		return m.Filter(), nil

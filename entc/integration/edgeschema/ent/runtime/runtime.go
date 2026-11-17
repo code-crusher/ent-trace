@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"entgo.io/ent/entc/integration/edgeschema/ent/attachedfile"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationship"
@@ -38,6 +39,12 @@ func init() {
 	attachedfileDescAttachTime := attachedfileFields[0].Descriptor()
 	// attachedfile.DefaultAttachTime holds the default value on creation for the attach_time field.
 	attachedfile.DefaultAttachTime = attachedfileDescAttachTime.Default.(func() time.Time)
+	bookingFields := schema.Booking{}.Fields()
+	_ = bookingFields
+	// bookingDescBookedAt is the schema descriptor for booked_at field.
+	bookingDescBookedAt := bookingFields[0].Descriptor()
+	// booking.DefaultBookedAt holds the default value on creation for the booked_at field.
+	booking.DefaultBookedAt = bookingDescBookedAt.Default.(func() time.Time)
 	friendshipFields := schema.Friendship{}.Fields()
 	_ = friendshipFields
 	// friendshipDescWeight is the schema descriptor for weight field.

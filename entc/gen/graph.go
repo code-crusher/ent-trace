@@ -636,9 +636,14 @@ func (g *Graph) edgeSchemas() error {
 			if edgeT.HasCompositeID() {
 				continue
 			}
+			// By default, an edge schema with an ID field gets a unique index on the two edge-fields
+			// to enforce uniqueness of the relation in the join table. Skip the auto-generated index
+			// if the schema defines an index on the same columns, so users can override it. For example,
+			// defining a non-unique index on the same columns allows multiple edges between the same
+			// two entities (e.g. booking the same hotel at different times).
 			hasI := func() bool {
 				for _, idx := range edgeT.Indexes {
-					if !idx.Unique || len(idx.Columns) != 2 {
+					if len(idx.Columns) != 2 {
 						continue
 					}
 					c1, c2 := idx.Columns[0], idx.Columns[1]

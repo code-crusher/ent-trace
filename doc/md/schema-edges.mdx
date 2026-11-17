@@ -1307,6 +1307,7 @@ func (Friendship) Edges() []ent.Edge {
 
 :::info
 - Similar to entity schemas, the `ID` field is automatically generated for edge schemas if not stated otherwise.
+- By default, edge schemas with an `ID` field get a unique index on the two edge-fields to enforce the uniqueness of the relation in the join table. Defining an index on the same edge-fields (in either order) overrides this behavior. For example, defining a non-unique `index.Fields("user_id", "friend_id")` allows the same pair of entities to be connected multiple times (e.g., booking the same hotel more than once).
 - Edge schemas cannot be used by more than one relationship.
 - The `user_id` and `friend_id` edge-fields are **required** in the edge schema as they compose the relationship.
 :::

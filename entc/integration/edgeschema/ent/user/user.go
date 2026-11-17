@@ -31,6 +31,8 @@ const (
 	EdgeTweets = "tweets"
 	// EdgeRoles holds the string denoting the roles edge name in mutations.
 	EdgeRoles = "roles"
+	// EdgeHotelBookings holds the string denoting the hotel_bookings edge name in mutations.
+	EdgeHotelBookings = "hotel_bookings"
 	// EdgeJoinedGroups holds the string denoting the joined_groups edge name in mutations.
 	EdgeJoinedGroups = "joined_groups"
 	// EdgeFriendships holds the string denoting the friendships edge name in mutations.
@@ -43,6 +45,8 @@ const (
 	EdgeUserTweets = "user_tweets"
 	// EdgeRolesUsers holds the string denoting the roles_users edge name in mutations.
 	EdgeRolesUsers = "roles_users"
+	// EdgeBookingEdges holds the string denoting the booking_edges edge name in mutations.
+	EdgeBookingEdges = "booking_edges"
 	// Table holds the table name of the user in the database.
 	Table = "users"
 	// GroupsTable is the table that holds the groups relation/edge. The primary key declared below.
@@ -69,6 +73,11 @@ const (
 	// RolesInverseTable is the table name for the Role entity.
 	// It exists in this package in order to avoid circular dependency with the "role" package.
 	RolesInverseTable = "roles"
+	// HotelBookingsTable is the table that holds the hotel_bookings relation/edge. The primary key declared below.
+	HotelBookingsTable = "bookings"
+	// HotelBookingsInverseTable is the table name for the Hotel entity.
+	// It exists in this package in order to avoid circular dependency with the "hotel" package.
+	HotelBookingsInverseTable = "hotels"
 	// JoinedGroupsTable is the table that holds the joined_groups relation/edge.
 	JoinedGroupsTable = "user_groups"
 	// JoinedGroupsInverseTable is the table name for the UserGroup entity.
@@ -111,6 +120,13 @@ const (
 	RolesUsersInverseTable = "role_users"
 	// RolesUsersColumn is the table column denoting the roles_users relation/edge.
 	RolesUsersColumn = "user_id"
+	// BookingEdgesTable is the table that holds the booking_edges relation/edge.
+	BookingEdgesTable = "bookings"
+	// BookingEdgesInverseTable is the table name for the Booking entity.
+	// It exists in this package in order to avoid circular dependency with the "booking" package.
+	BookingEdgesInverseTable = "bookings"
+	// BookingEdgesColumn is the table column denoting the booking_edges relation/edge.
+	BookingEdgesColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
@@ -138,6 +154,9 @@ var (
 	// RolesPrimaryKey and RolesColumn2 are the table columns denoting the
 	// primary key for the roles relation (M2M).
 	RolesPrimaryKey = []string{"user_id", "role_id"}
+	// HotelBookingsPrimaryKey and HotelBookingsColumn2 are the table columns denoting the
+	// primary key for the hotel_bookings relation (M2M).
+	HotelBookingsPrimaryKey = []string{"user_id", "hotel_id"}
 )
 
 // ValidColumn reports if the column name is valid (part of the table columns).
@@ -259,6 +278,20 @@ func ByRoles(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 	}
 }
 
+// ByHotelBookingsCount orders the results by hotel_bookings count.
+func ByHotelBookingsCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newHotelBookingsStep(), opts...)
+	}
+}
+
+// ByHotelBookings orders the results by hotel_bookings terms.
+func ByHotelBookings(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newHotelBookingsStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
+
 // ByJoinedGroupsCount orders the results by joined_groups count.
 func ByJoinedGroupsCount(opts ...sql.OrderTermOption) OrderOption {
 	return func(s *sql.Selector) {
@@ -342,6 +375,20 @@ func ByRolesUsers(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
 		sqlgraph.OrderByNeighborTerms(s, newRolesUsersStep(), append([]sql.OrderTerm{term}, terms...)...)
 	}
 }
+
+// ByBookingEdgesCount orders the results by booking_edges count.
+func ByBookingEdgesCount(opts ...sql.OrderTermOption) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborsCount(s, newBookingEdgesStep(), opts...)
+	}
+}
+
+// ByBookingEdges orders the results by booking_edges terms.
+func ByBookingEdges(term sql.OrderTerm, terms ...sql.OrderTerm) OrderOption {
+	return func(s *sql.Selector) {
+		sqlgraph.OrderByNeighborTerms(s, newBookingEdgesStep(), append([]sql.OrderTerm{term}, terms...)...)
+	}
+}
 func newGroupsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -384,6 +431,13 @@ func newRolesStep() *sqlgraph.Step {
 		sqlgraph.Edge(sqlgraph.M2M, false, RolesTable, RolesPrimaryKey...),
 	)
 }
+func newHotelBookingsStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(HotelBookingsInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.M2M, false, HotelBookingsTable, HotelBookingsPrimaryKey...),
+	)
+}
 func newJoinedGroupsStep() *sqlgraph.Step {
 	return sqlgraph.NewStep(
 		sqlgraph.From(Table, FieldID),
@@ -424,5 +478,12 @@ func newRolesUsersStep() *sqlgraph.Step {
 		sqlgraph.From(Table, FieldID),
 		sqlgraph.To(RolesUsersInverseTable, RolesUsersColumn),
 		sqlgraph.Edge(sqlgraph.O2M, true, RolesUsersTable, RolesUsersColumn),
+	)
+}
+func newBookingEdgesStep() *sqlgraph.Step {
+	return sqlgraph.NewStep(
+		sqlgraph.From(Table, FieldID),
+		sqlgraph.To(BookingEdgesInverseTable, FieldID),
+		sqlgraph.Edge(sqlgraph.O2M, true, BookingEdgesTable, BookingEdgesColumn),
 	)
 }

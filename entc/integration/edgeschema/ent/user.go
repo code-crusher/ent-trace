@@ -42,6 +42,8 @@ type UserEdges struct {
 	Tweets []*Tweet `json:"tweets,omitempty"`
 	// Roles holds the value of the roles edge.
 	Roles []*Role `json:"roles,omitempty"`
+	// HotelBookings holds the value of the hotel_bookings edge.
+	HotelBookings []*Hotel `json:"hotel_bookings,omitempty"`
 	// JoinedGroups holds the value of the joined_groups edge.
 	JoinedGroups []*UserGroup `json:"joined_groups,omitempty"`
 	// Friendships holds the value of the friendships edge.
@@ -54,9 +56,11 @@ type UserEdges struct {
 	UserTweets []*UserTweet `json:"user_tweets,omitempty"`
 	// RolesUsers holds the value of the roles_users edge.
 	RolesUsers []*RoleUser `json:"roles_users,omitempty"`
+	// BookingEdges holds the value of the booking_edges edge.
+	BookingEdges []*Booking `json:"booking_edges,omitempty"`
 	// loadedTypes holds the information for reporting if a
 	// type was loaded (or requested) in eager-loading or not.
-	loadedTypes [12]bool
+	loadedTypes [14]bool
 }
 
 // GroupsOrErr returns the Groups value or an error if the edge
@@ -113,10 +117,19 @@ func (e UserEdges) RolesOrErr() ([]*Role, error) {
 	return nil, &NotLoadedError{edge: "roles"}
 }
 
+// HotelBookingsOrErr returns the HotelBookings value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) HotelBookingsOrErr() ([]*Hotel, error) {
+	if e.loadedTypes[6] {
+		return e.HotelBookings, nil
+	}
+	return nil, &NotLoadedError{edge: "hotel_bookings"}
+}
+
 // JoinedGroupsOrErr returns the JoinedGroups value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) JoinedGroupsOrErr() ([]*UserGroup, error) {
-	if e.loadedTypes[6] {
+	if e.loadedTypes[7] {
 		return e.JoinedGroups, nil
 	}
 	return nil, &NotLoadedError{edge: "joined_groups"}
@@ -125,7 +138,7 @@ func (e UserEdges) JoinedGroupsOrErr() ([]*UserGroup, error) {
 // FriendshipsOrErr returns the Friendships value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
-	if e.loadedTypes[7] {
+	if e.loadedTypes[8] {
 		return e.Friendships, nil
 	}
 	return nil, &NotLoadedError{edge: "friendships"}
@@ -134,7 +147,7 @@ func (e UserEdges) FriendshipsOrErr() ([]*Friendship, error) {
 // RelationshipOrErr returns the Relationship value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RelationshipOrErr() ([]*Relationship, error) {
-	if e.loadedTypes[8] {
+	if e.loadedTypes[9] {
 		return e.Relationship, nil
 	}
 	return nil, &NotLoadedError{edge: "relationship"}
@@ -143,7 +156,7 @@ func (e UserEdges) RelationshipOrErr() ([]*Relationship, error) {
 // LikesOrErr returns the Likes value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) LikesOrErr() ([]*TweetLike, error) {
-	if e.loadedTypes[9] {
+	if e.loadedTypes[10] {
 		return e.Likes, nil
 	}
 	return nil, &NotLoadedError{edge: "likes"}
@@ -152,7 +165,7 @@ func (e UserEdges) LikesOrErr() ([]*TweetLike, error) {
 // UserTweetsOrErr returns the UserTweets value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) UserTweetsOrErr() ([]*UserTweet, error) {
-	if e.loadedTypes[10] {
+	if e.loadedTypes[11] {
 		return e.UserTweets, nil
 	}
 	return nil, &NotLoadedError{edge: "user_tweets"}
@@ -161,10 +174,19 @@ func (e UserEdges) UserTweetsOrErr() ([]*UserTweet, error) {
 // RolesUsersOrErr returns the RolesUsers value or an error if the edge
 // was not loaded in eager-loading.
 func (e UserEdges) RolesUsersOrErr() ([]*RoleUser, error) {
-	if e.loadedTypes[11] {
+	if e.loadedTypes[12] {
 		return e.RolesUsers, nil
 	}
 	return nil, &NotLoadedError{edge: "roles_users"}
+}
+
+// BookingEdgesOrErr returns the BookingEdges value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) BookingEdgesOrErr() ([]*Booking, error) {
+	if e.loadedTypes[13] {
+		return e.BookingEdges, nil
+	}
+	return nil, &NotLoadedError{edge: "booking_edges"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -246,6 +268,11 @@ func (_m *User) QueryRoles() *RoleQuery {
 	return NewUserClient(_m.config).QueryRoles(_m)
 }
 
+// QueryHotelBookings queries the "hotel_bookings" edge of the User entity.
+func (_m *User) QueryHotelBookings() *HotelQuery {
+	return NewUserClient(_m.config).QueryHotelBookings(_m)
+}
+
 // QueryJoinedGroups queries the "joined_groups" edge of the User entity.
 func (_m *User) QueryJoinedGroups() *UserGroupQuery {
 	return NewUserClient(_m.config).QueryJoinedGroups(_m)
@@ -274,6 +301,11 @@ func (_m *User) QueryUserTweets() *UserTweetQuery {
 // QueryRolesUsers queries the "roles_users" edge of the User entity.
 func (_m *User) QueryRolesUsers() *RoleUserQuery {
 	return NewUserClient(_m.config).QueryRolesUsers(_m)
+}
+
+// QueryBookingEdges queries the "booking_edges" edge of the User entity.
+func (_m *User) QueryBookingEdges() *BookingQuery {
+	return NewUserClient(_m.config).QueryBookingEdges(_m)
 }
 
 // Update returns a builder for updating this User.

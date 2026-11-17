@@ -8,10 +8,12 @@ package ent
 
 import (
 	"entgo.io/ent/entc/integration/edgeschema/ent/attachedfile"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/file"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
 	"entgo.io/ent/entc/integration/edgeschema/ent/grouptag"
+	"entgo.io/ent/entc/integration/edgeschema/ent/hotel"
 	"entgo.io/ent/entc/integration/edgeschema/ent/predicate"
 	"entgo.io/ent/entc/integration/edgeschema/ent/process"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationship"
@@ -34,7 +36,7 @@ import (
 
 // schemaGraph holds a representation of ent/schema at runtime.
 var schemaGraph = func() *sqlgraph.Schema {
-	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 17)}
+	graph := &sqlgraph.Schema{Nodes: make([]*sqlgraph.Node, 19)}
 	graph.Nodes[0] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   attachedfile.Table,
@@ -53,6 +55,22 @@ var schemaGraph = func() *sqlgraph.Schema {
 	}
 	graph.Nodes[1] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
+			Table:   booking.Table,
+			Columns: booking.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: booking.FieldID,
+			},
+		},
+		Type: "Booking",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			booking.FieldBookedAt: {Type: field.TypeTime, Column: booking.FieldBookedAt},
+			booking.FieldUserID:   {Type: field.TypeInt, Column: booking.FieldUserID},
+			booking.FieldHotelID:  {Type: field.TypeInt, Column: booking.FieldHotelID},
+		},
+	}
+	graph.Nodes[2] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
 			Table:   file.Table,
 			Columns: file.Columns,
 			ID: &sqlgraph.FieldSpec{
@@ -65,7 +83,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			file.FieldName: {Type: field.TypeString, Column: file.FieldName},
 		},
 	}
-	graph.Nodes[2] = &sqlgraph.Node{
+	graph.Nodes[3] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   friendship.Table,
 			Columns: friendship.Columns,
@@ -82,7 +100,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			friendship.FieldFriendID:  {Type: field.TypeInt, Column: friendship.FieldFriendID},
 		},
 	}
-	graph.Nodes[3] = &sqlgraph.Node{
+	graph.Nodes[4] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   group.Table,
 			Columns: group.Columns,
@@ -96,7 +114,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			group.FieldName: {Type: field.TypeString, Column: group.FieldName},
 		},
 	}
-	graph.Nodes[4] = &sqlgraph.Node{
+	graph.Nodes[5] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   grouptag.Table,
 			Columns: grouptag.Columns,
@@ -111,7 +129,21 @@ var schemaGraph = func() *sqlgraph.Schema {
 			grouptag.FieldGroupID: {Type: field.TypeInt, Column: grouptag.FieldGroupID},
 		},
 	}
-	graph.Nodes[5] = &sqlgraph.Node{
+	graph.Nodes[6] = &sqlgraph.Node{
+		NodeSpec: sqlgraph.NodeSpec{
+			Table:   hotel.Table,
+			Columns: hotel.Columns,
+			ID: &sqlgraph.FieldSpec{
+				Type:   field.TypeInt,
+				Column: hotel.FieldID,
+			},
+		},
+		Type: "Hotel",
+		Fields: map[string]*sqlgraph.FieldSpec{
+			hotel.FieldName: {Type: field.TypeString, Column: hotel.FieldName},
+		},
+	}
+	graph.Nodes[7] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   process.Table,
 			Columns: process.Columns,
@@ -123,7 +155,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 		Type:   "Process",
 		Fields: map[string]*sqlgraph.FieldSpec{},
 	}
-	graph.Nodes[6] = &sqlgraph.Node{
+	graph.Nodes[8] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   relationship.Table,
 			Columns: relationship.Columns,
@@ -146,7 +178,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			relationship.FieldInfoID:     {Type: field.TypeInt, Column: relationship.FieldInfoID},
 		},
 	}
-	graph.Nodes[7] = &sqlgraph.Node{
+	graph.Nodes[9] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   relationshipinfo.Table,
 			Columns: relationshipinfo.Columns,
@@ -160,7 +192,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			relationshipinfo.FieldText: {Type: field.TypeString, Column: relationshipinfo.FieldText},
 		},
 	}
-	graph.Nodes[8] = &sqlgraph.Node{
+	graph.Nodes[10] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   role.Table,
 			Columns: role.Columns,
@@ -175,7 +207,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			role.FieldCreatedAt: {Type: field.TypeTime, Column: role.FieldCreatedAt},
 		},
 	}
-	graph.Nodes[9] = &sqlgraph.Node{
+	graph.Nodes[11] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   roleuser.Table,
 			Columns: roleuser.Columns,
@@ -197,7 +229,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			roleuser.FieldUserID:    {Type: field.TypeInt, Column: roleuser.FieldUserID},
 		},
 	}
-	graph.Nodes[10] = &sqlgraph.Node{
+	graph.Nodes[12] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   tag.Table,
 			Columns: tag.Columns,
@@ -211,7 +243,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			tag.FieldValue: {Type: field.TypeString, Column: tag.FieldValue},
 		},
 	}
-	graph.Nodes[11] = &sqlgraph.Node{
+	graph.Nodes[13] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   tweet.Table,
 			Columns: tweet.Columns,
@@ -225,7 +257,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			tweet.FieldText: {Type: field.TypeString, Column: tweet.FieldText},
 		},
 	}
-	graph.Nodes[12] = &sqlgraph.Node{
+	graph.Nodes[14] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   tweetlike.Table,
 			Columns: tweetlike.Columns,
@@ -247,7 +279,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			tweetlike.FieldTweetID: {Type: field.TypeInt, Column: tweetlike.FieldTweetID},
 		},
 	}
-	graph.Nodes[13] = &sqlgraph.Node{
+	graph.Nodes[15] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   tweettag.Table,
 			Columns: tweettag.Columns,
@@ -263,7 +295,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			tweettag.FieldTweetID: {Type: field.TypeInt, Column: tweettag.FieldTweetID},
 		},
 	}
-	graph.Nodes[14] = &sqlgraph.Node{
+	graph.Nodes[16] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   user.Table,
 			Columns: user.Columns,
@@ -277,7 +309,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			user.FieldName: {Type: field.TypeString, Column: user.FieldName},
 		},
 	}
-	graph.Nodes[15] = &sqlgraph.Node{
+	graph.Nodes[17] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   usergroup.Table,
 			Columns: usergroup.Columns,
@@ -293,7 +325,7 @@ var schemaGraph = func() *sqlgraph.Schema {
 			usergroup.FieldGroupID:  {Type: field.TypeInt, Column: usergroup.FieldGroupID},
 		},
 	}
-	graph.Nodes[16] = &sqlgraph.Node{
+	graph.Nodes[18] = &sqlgraph.Node{
 		NodeSpec: sqlgraph.NodeSpec{
 			Table:   usertweet.Table,
 			Columns: usertweet.Columns,
@@ -332,6 +364,30 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"AttachedFile",
 		"Process",
+	)
+	graph.MustAddE(
+		"user",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   booking.UserTable,
+			Columns: []string{booking.UserColumn},
+			Bidi:    false,
+		},
+		"Booking",
+		"User",
+	)
+	graph.MustAddE(
+		"hotel",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2O,
+			Inverse: false,
+			Table:   booking.HotelTable,
+			Columns: []string{booking.HotelColumn},
+			Bidi:    false,
+		},
+		"Booking",
+		"Hotel",
 	)
 	graph.MustAddE(
 		"processes",
@@ -440,6 +496,30 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"GroupTag",
 		"Group",
+	)
+	graph.MustAddE(
+		"guests",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: true,
+			Table:   hotel.GuestsTable,
+			Columns: hotel.GuestsPrimaryKey,
+			Bidi:    false,
+		},
+		"Hotel",
+		"User",
+	)
+	graph.MustAddE(
+		"bookings",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   hotel.BookingsTable,
+			Columns: []string{hotel.BookingsColumn},
+			Bidi:    false,
+		},
+		"Hotel",
+		"Booking",
 	)
 	graph.MustAddE(
 		"files",
@@ -790,6 +870,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		"Role",
 	)
 	graph.MustAddE(
+		"hotel_bookings",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+		},
+		"User",
+		"Hotel",
+	)
+	graph.MustAddE(
 		"joined_groups",
 		&sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -860,6 +952,18 @@ var schemaGraph = func() *sqlgraph.Schema {
 		},
 		"User",
 		"RoleUser",
+	)
+	graph.MustAddE(
+		"booking_edges",
+		&sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+		},
+		"User",
+		"Booking",
 	)
 	graph.MustAddE(
 		"user",
@@ -1002,6 +1106,89 @@ func (f *AttachedFileFilter) WhereHasProcWith(preds ...predicate.Process) {
 }
 
 // addPredicate implements the predicateAdder interface.
+func (_q *BookingQuery) addPredicate(pred func(s *sql.Selector)) {
+	_q.predicates = append(_q.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the BookingQuery builder.
+func (_q *BookingQuery) Filter() *BookingFilter {
+	return &BookingFilter{config: _q.config, predicateAdder: _q}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *BookingMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.Where(pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the BookingMutation builder.
+func (m *BookingMutation) Filter() *BookingFilter {
+	return &BookingFilter{config: m.config, predicateAdder: m}
+}
+
+// BookingFilter provides a generic filtering capability at runtime for BookingQuery.
+type BookingFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *BookingFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql int predicate on the id field.
+func (f *BookingFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(booking.FieldID))
+}
+
+// WhereBookedAt applies the entql time.Time predicate on the booked_at field.
+func (f *BookingFilter) WhereBookedAt(p entql.TimeP) {
+	f.Where(p.Field(booking.FieldBookedAt))
+}
+
+// WhereUserID applies the entql int predicate on the user_id field.
+func (f *BookingFilter) WhereUserID(p entql.IntP) {
+	f.Where(p.Field(booking.FieldUserID))
+}
+
+// WhereHotelID applies the entql int predicate on the hotel_id field.
+func (f *BookingFilter) WhereHotelID(p entql.IntP) {
+	f.Where(p.Field(booking.FieldHotelID))
+}
+
+// WhereHasUser applies a predicate to check if query has an edge user.
+func (f *BookingFilter) WhereHasUser() {
+	f.Where(entql.HasEdge("user"))
+}
+
+// WhereHasUserWith applies a predicate to check if query has an edge user with a given conditions (other predicates).
+func (f *BookingFilter) WhereHasUserWith(preds ...predicate.User) {
+	f.Where(entql.HasEdgeWith("user", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasHotel applies a predicate to check if query has an edge hotel.
+func (f *BookingFilter) WhereHasHotel() {
+	f.Where(entql.HasEdge("hotel"))
+}
+
+// WhereHasHotelWith applies a predicate to check if query has an edge hotel with a given conditions (other predicates).
+func (f *BookingFilter) WhereHasHotelWith(preds ...predicate.Hotel) {
+	f.Where(entql.HasEdgeWith("hotel", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
 func (_q *FileQuery) addPredicate(pred func(s *sql.Selector)) {
 	_q.predicates = append(_q.predicates, pred)
 }
@@ -1030,7 +1217,7 @@ type FileFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *FileFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[1].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1089,7 +1276,7 @@ type FriendshipFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *FriendshipFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[2].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1177,7 +1364,7 @@ type GroupFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *GroupFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[3].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1278,7 +1465,7 @@ type GroupTagFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *GroupTagFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[4].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[5].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1328,6 +1515,79 @@ func (f *GroupTagFilter) WhereHasGroupWith(preds ...predicate.Group) {
 }
 
 // addPredicate implements the predicateAdder interface.
+func (_q *HotelQuery) addPredicate(pred func(s *sql.Selector)) {
+	_q.predicates = append(_q.predicates, pred)
+}
+
+// Filter returns a Filter implementation to apply filters on the HotelQuery builder.
+func (_q *HotelQuery) Filter() *HotelFilter {
+	return &HotelFilter{config: _q.config, predicateAdder: _q}
+}
+
+// addPredicate implements the predicateAdder interface.
+func (m *HotelMutation) addPredicate(pred func(s *sql.Selector)) {
+	m.Where(pred)
+}
+
+// Filter returns an entql.Where implementation to apply filters on the HotelMutation builder.
+func (m *HotelMutation) Filter() *HotelFilter {
+	return &HotelFilter{config: m.config, predicateAdder: m}
+}
+
+// HotelFilter provides a generic filtering capability at runtime for HotelQuery.
+type HotelFilter struct {
+	predicateAdder
+	config
+}
+
+// Where applies the entql predicate on the query filter.
+func (f *HotelFilter) Where(p entql.P) {
+	f.addPredicate(func(s *sql.Selector) {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[6].Type, p, s); err != nil {
+			s.AddError(err)
+		}
+	})
+}
+
+// WhereID applies the entql int predicate on the id field.
+func (f *HotelFilter) WhereID(p entql.IntP) {
+	f.Where(p.Field(hotel.FieldID))
+}
+
+// WhereName applies the entql string predicate on the name field.
+func (f *HotelFilter) WhereName(p entql.StringP) {
+	f.Where(p.Field(hotel.FieldName))
+}
+
+// WhereHasGuests applies a predicate to check if query has an edge guests.
+func (f *HotelFilter) WhereHasGuests() {
+	f.Where(entql.HasEdge("guests"))
+}
+
+// WhereHasGuestsWith applies a predicate to check if query has an edge guests with a given conditions (other predicates).
+func (f *HotelFilter) WhereHasGuestsWith(preds ...predicate.User) {
+	f.Where(entql.HasEdgeWith("guests", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// WhereHasBookings applies a predicate to check if query has an edge bookings.
+func (f *HotelFilter) WhereHasBookings() {
+	f.Where(entql.HasEdge("bookings"))
+}
+
+// WhereHasBookingsWith applies a predicate to check if query has an edge bookings with a given conditions (other predicates).
+func (f *HotelFilter) WhereHasBookingsWith(preds ...predicate.Booking) {
+	f.Where(entql.HasEdgeWith("bookings", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
+// addPredicate implements the predicateAdder interface.
 func (_q *ProcessQuery) addPredicate(pred func(s *sql.Selector)) {
 	_q.predicates = append(_q.predicates, pred)
 }
@@ -1356,7 +1616,7 @@ type ProcessFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *ProcessFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[5].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[7].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1424,7 +1684,7 @@ type RelationshipFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RelationshipFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[6].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[8].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1521,7 +1781,7 @@ type RelationshipInfoFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RelationshipInfoFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[7].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[9].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1566,7 +1826,7 @@ type RoleFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RoleFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[8].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[10].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1644,7 +1904,7 @@ type RoleUserFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *RoleUserFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[9].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[11].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1722,7 +1982,7 @@ type TagFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TagFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[10].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[12].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1823,7 +2083,7 @@ type TweetFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TweetFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[11].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[13].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -1952,7 +2212,7 @@ type TweetLikeFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TweetLikeFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[12].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[14].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -2030,7 +2290,7 @@ type TweetTagFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *TweetTagFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[13].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[15].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -2113,7 +2373,7 @@ type UserFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[14].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[16].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -2213,6 +2473,20 @@ func (f *UserFilter) WhereHasRolesWith(preds ...predicate.Role) {
 	})))
 }
 
+// WhereHasHotelBookings applies a predicate to check if query has an edge hotel_bookings.
+func (f *UserFilter) WhereHasHotelBookings() {
+	f.Where(entql.HasEdge("hotel_bookings"))
+}
+
+// WhereHasHotelBookingsWith applies a predicate to check if query has an edge hotel_bookings with a given conditions (other predicates).
+func (f *UserFilter) WhereHasHotelBookingsWith(preds ...predicate.Hotel) {
+	f.Where(entql.HasEdgeWith("hotel_bookings", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // WhereHasJoinedGroups applies a predicate to check if query has an edge joined_groups.
 func (f *UserFilter) WhereHasJoinedGroups() {
 	f.Where(entql.HasEdge("joined_groups"))
@@ -2297,6 +2571,20 @@ func (f *UserFilter) WhereHasRolesUsersWith(preds ...predicate.RoleUser) {
 	})))
 }
 
+// WhereHasBookingEdges applies a predicate to check if query has an edge booking_edges.
+func (f *UserFilter) WhereHasBookingEdges() {
+	f.Where(entql.HasEdge("booking_edges"))
+}
+
+// WhereHasBookingEdgesWith applies a predicate to check if query has an edge booking_edges with a given conditions (other predicates).
+func (f *UserFilter) WhereHasBookingEdgesWith(preds ...predicate.Booking) {
+	f.Where(entql.HasEdgeWith("booking_edges", sqlgraph.WrapFunc(func(s *sql.Selector) {
+		for _, p := range preds {
+			p(s)
+		}
+	})))
+}
+
 // addPredicate implements the predicateAdder interface.
 func (_q *UserGroupQuery) addPredicate(pred func(s *sql.Selector)) {
 	_q.predicates = append(_q.predicates, pred)
@@ -2326,7 +2614,7 @@ type UserGroupFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserGroupFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[15].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[17].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})
@@ -2409,7 +2697,7 @@ type UserTweetFilter struct {
 // Where applies the entql predicate on the query filter.
 func (f *UserTweetFilter) Where(p entql.P) {
 	f.addPredicate(func(s *sql.Selector) {
-		if err := schemaGraph.EvalP(schemaGraph.Nodes[16].Type, p, s); err != nil {
+		if err := schemaGraph.EvalP(schemaGraph.Nodes[18].Type, p, s); err != nil {
 			s.AddError(err)
 		}
 	})

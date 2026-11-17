@@ -371,6 +371,29 @@ func TestEdgeSchemaEntQL(t *testing.T) {
 	require.Equal(t, rl1.InfoID, rl2.InfoID)
 }
 
+func TestEdgeSchemaNonUniqueIndex(t *testing.T) {
+	client, err := ent.Open(dialect.SQLite, "file:ent?mode=memory&cache=shared&_fk=1")
+	require.NoError(t, err)
+	defer client.Close()
+	ctx := context.Background()
+	require.NoError(t, client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true)))
+
+	a8m := client.User.Create().SetName("a8m").SaveX(ctx)
+	hub := client.Hotel.Create().SetName("GitHub Hub").SaveX(ctx)
+
+	// Booking the same hotel twice is allowed, because the edge schema
+	// defines a non-unique index on the (user_id, hotel_id) columns,
+	// which overrides the default unique index for edge schemas.
+	b1 := client.Booking.Create().SetUser(a8m).SetHotel(hub).SaveX(ctx)
+	b2 := client.Booking.Create().SetUser(a8m).SetHotel(hub).SaveX(ctx)
+	require.NotEqual(t, b1.ID, b2.ID)
+	require.Equal(t, 2, client.Booking.Query().CountX(ctx))
+	require.Equal(t, 2, a8m.QueryBookingEdges().CountX(ctx))
+	require.Equal(t, 2, hub.QueryBookings().CountX(ctx))
+	// The two bookings refer to the same hotel, so the M2M traversal returns it once.
+	require.Equal(t, 1, a8m.QueryHotelBookings().CountX(ctx))
+}
+
 func TestEdgeSchemaTypeMatching(t *testing.T) {
 	client, err := ent.Open(dialect.SQLite, "file:ent?mode=memory&_fk=1")
 	require.NoError(t, err)

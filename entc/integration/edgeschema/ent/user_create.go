@@ -13,8 +13,10 @@ import (
 
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
+	"entgo.io/ent/entc/integration/edgeschema/ent/hotel"
 	"entgo.io/ent/entc/integration/edgeschema/ent/role"
 	"entgo.io/ent/entc/integration/edgeschema/ent/tweet"
 	"entgo.io/ent/entc/integration/edgeschema/ent/user"
@@ -135,6 +137,21 @@ func (_c *UserCreate) AddRoles(v ...*Role) *UserCreate {
 	return _c.AddRoleIDs(ids...)
 }
 
+// AddHotelBookingIDs adds the "hotel_bookings" edge to the Hotel entity by IDs.
+func (_c *UserCreate) AddHotelBookingIDs(ids ...int) *UserCreate {
+	_c.mutation.AddHotelBookingIDs(ids...)
+	return _c
+}
+
+// AddHotelBookings adds the "hotel_bookings" edges to the Hotel entity.
+func (_c *UserCreate) AddHotelBookings(v ...*Hotel) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddHotelBookingIDs(ids...)
+}
+
 // AddJoinedGroupIDs adds the "joined_groups" edge to the UserGroup entity by IDs.
 func (_c *UserCreate) AddJoinedGroupIDs(ids ...int) *UserCreate {
 	_c.mutation.AddJoinedGroupIDs(ids...)
@@ -178,6 +195,21 @@ func (_c *UserCreate) AddUserTweets(v ...*UserTweet) *UserCreate {
 		ids[i] = v[i].ID
 	}
 	return _c.AddUserTweetIDs(ids...)
+}
+
+// AddBookingEdgeIDs adds the "booking_edges" edge to the Booking entity by IDs.
+func (_c *UserCreate) AddBookingEdgeIDs(ids ...int) *UserCreate {
+	_c.mutation.AddBookingEdgeIDs(ids...)
+	return _c
+}
+
+// AddBookingEdges adds the "booking_edges" edges to the Booking entity.
+func (_c *UserCreate) AddBookingEdges(v ...*Booking) *UserCreate {
+	ids := make([]int, len(v))
+	for i := range v {
+		ids[i] = v[i].ID
+	}
+	return _c.AddBookingEdgeIDs(ids...)
 }
 
 // Mutation returns the UserMutation object of the builder.
@@ -380,6 +412,26 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 		edge.Target.Fields = specE.Fields
 		_spec.Edges = append(_spec.Edges, edge)
 	}
+	if nodes := _c.mutation.HotelBookingsIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.M2M,
+			Inverse: false,
+			Table:   user.HotelBookingsTable,
+			Columns: user.HotelBookingsPrimaryKey,
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(hotel.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		createE := &BookingCreate{config: _c.config, mutation: newBookingMutation(_c.config, OpCreate)}
+		createE.defaults()
+		_, specE := createE.createSpec()
+		edge.Target.Fields = specE.Fields
+		_spec.Edges = append(_spec.Edges, edge)
+	}
 	if nodes := _c.mutation.JoinedGroupsIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{
 			Rel:     sqlgraph.O2M,
@@ -421,6 +473,22 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 			Bidi:    false,
 			Target: &sqlgraph.EdgeTarget{
 				IDSpec: sqlgraph.NewFieldSpec(usertweet.FieldID, field.TypeInt),
+			},
+		}
+		for _, k := range nodes {
+			edge.Target.Nodes = append(edge.Target.Nodes, k)
+		}
+		_spec.Edges = append(_spec.Edges, edge)
+	}
+	if nodes := _c.mutation.BookingEdgesIDs(); len(nodes) > 0 {
+		edge := &sqlgraph.EdgeSpec{
+			Rel:     sqlgraph.O2M,
+			Inverse: true,
+			Table:   user.BookingEdgesTable,
+			Columns: []string{user.BookingEdgesColumn},
+			Bidi:    false,
+			Target: &sqlgraph.EdgeTarget{
+				IDSpec: sqlgraph.NewFieldSpec(booking.FieldID, field.TypeInt),
 			},
 		}
 		for _, k := range nodes {

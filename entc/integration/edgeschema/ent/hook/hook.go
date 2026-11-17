@@ -25,6 +25,18 @@ func (f AttachedFileFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AttachedFileMutation", m)
 }
 
+// The BookingFunc type is an adapter to allow the use of ordinary
+// function as Booking mutator.
+type BookingFunc func(context.Context, *ent.BookingMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f BookingFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.BookingMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.BookingMutation", m)
+}
+
 // The FileFunc type is an adapter to allow the use of ordinary
 // function as File mutator.
 type FileFunc func(context.Context, *ent.FileMutation) (ent.Value, error)
@@ -71,6 +83,18 @@ func (f GroupTagFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, er
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.GroupTagMutation", m)
+}
+
+// The HotelFunc type is an adapter to allow the use of ordinary
+// function as Hotel mutator.
+type HotelFunc func(context.Context, *ent.HotelMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f HotelFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.HotelMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.HotelMutation", m)
 }
 
 // The ProcessFunc type is an adapter to allow the use of ordinary

@@ -17,10 +17,12 @@ import (
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
 	"entgo.io/ent/entc/integration/edgeschema/ent/attachedfile"
+	"entgo.io/ent/entc/integration/edgeschema/ent/booking"
 	"entgo.io/ent/entc/integration/edgeschema/ent/file"
 	"entgo.io/ent/entc/integration/edgeschema/ent/friendship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/group"
 	"entgo.io/ent/entc/integration/edgeschema/ent/grouptag"
+	"entgo.io/ent/entc/integration/edgeschema/ent/hotel"
 	"entgo.io/ent/entc/integration/edgeschema/ent/process"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationship"
 	"entgo.io/ent/entc/integration/edgeschema/ent/relationshipinfo"
@@ -94,10 +96,12 @@ func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
 			attachedfile.Table:     attachedfile.ValidColumn,
+			booking.Table:          booking.ValidColumn,
 			file.Table:             file.ValidColumn,
 			friendship.Table:       friendship.ValidColumn,
 			group.Table:            group.ValidColumn,
 			grouptag.Table:         grouptag.ValidColumn,
+			hotel.Table:            hotel.ValidColumn,
 			process.Table:          process.ValidColumn,
 			relationship.Table:     relationship.ValidColumn,
 			relationshipinfo.Table: relationshipinfo.ValidColumn,

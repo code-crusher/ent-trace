@@ -18,6 +18,8 @@ type Tx struct {
 	config
 	// AttachedFile is the client for interacting with the AttachedFile builders.
 	AttachedFile *AttachedFileClient
+	// Booking is the client for interacting with the Booking builders.
+	Booking *BookingClient
 	// File is the client for interacting with the File builders.
 	File *FileClient
 	// Friendship is the client for interacting with the Friendship builders.
@@ -26,6 +28,8 @@ type Tx struct {
 	Group *GroupClient
 	// GroupTag is the client for interacting with the GroupTag builders.
 	GroupTag *GroupTagClient
+	// Hotel is the client for interacting with the Hotel builders.
+	Hotel *HotelClient
 	// Process is the client for interacting with the Process builders.
 	Process *ProcessClient
 	// Relationship is the client for interacting with the Relationship builders.
@@ -182,10 +186,12 @@ func (tx *Tx) Client() *Client {
 
 func (tx *Tx) init() {
 	tx.AttachedFile = NewAttachedFileClient(tx.config)
+	tx.Booking = NewBookingClient(tx.config)
 	tx.File = NewFileClient(tx.config)
 	tx.Friendship = NewFriendshipClient(tx.config)
 	tx.Group = NewGroupClient(tx.config)
 	tx.GroupTag = NewGroupTagClient(tx.config)
+	tx.Hotel = NewHotelClient(tx.config)
 	tx.Process = NewProcessClient(tx.config)
 	tx.Relationship = NewRelationshipClient(tx.config)
 	tx.RelationshipInfo = NewRelationshipInfoClient(tx.config)

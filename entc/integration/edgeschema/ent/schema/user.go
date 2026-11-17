@@ -39,6 +39,8 @@ func (User) Edges() []ent.Edge {
 			Through("user_tweets", UserTweet.Type),
 		edge.To("roles", Role.Type).
 			Through("roles_users", RoleUser.Type),
+		edge.To("hotel_bookings", Hotel.Type).
+			Through("booking_edges", Booking.Type),
 	}
 }
 

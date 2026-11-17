@@ -46,6 +46,40 @@ var (
 			},
 		},
 	}
+	// BookingsColumns holds the columns for the "bookings" table.
+	BookingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "booked_at", Type: field.TypeTime},
+		{Name: "user_id", Type: field.TypeInt},
+		{Name: "hotel_id", Type: field.TypeInt},
+	}
+	// BookingsTable holds the schema information for the "bookings" table.
+	BookingsTable = &schema.Table{
+		Name:       "bookings",
+		Columns:    BookingsColumns,
+		PrimaryKey: []*schema.Column{BookingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "bookings_users_user",
+				Columns:    []*schema.Column{BookingsColumns[2]},
+				RefColumns: []*schema.Column{UsersColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+			{
+				Symbol:     "bookings_hotels_hotel",
+				Columns:    []*schema.Column{BookingsColumns[3]},
+				RefColumns: []*schema.Column{HotelsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+		Indexes: []*schema.Index{
+			{
+				Name:    "booking_user_id_hotel_id",
+				Unique:  false,
+				Columns: []*schema.Column{BookingsColumns[2], BookingsColumns[3]},
+			},
+		},
+	}
 	// FilesColumns holds the columns for the "files" table.
 	FilesColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true},
@@ -140,6 +174,17 @@ var (
 				Columns: []*schema.Column{GroupTagsColumns[1], GroupTagsColumns[2]},
 			},
 		},
+	}
+	// HotelsColumns holds the columns for the "hotels" table.
+	HotelsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeInt, Increment: true},
+		{Name: "name", Type: field.TypeString},
+	}
+	// HotelsTable holds the schema information for the "hotels" table.
+	HotelsTable = &schema.Table{
+		Name:       "hotels",
+		Columns:    HotelsColumns,
+		PrimaryKey: []*schema.Column{HotelsColumns[0]},
 	}
 	// ProcessesColumns holds the columns for the "processes" table.
 	ProcessesColumns = []*schema.Column{
@@ -414,10 +459,12 @@ var (
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
 		AttachedFilesTable,
+		BookingsTable,
 		FilesTable,
 		FriendshipsTable,
 		GroupsTable,
 		GroupTagsTable,
+		HotelsTable,
 		ProcessesTable,
 		RelationshipsTable,
 		RelationshipInfosTable,
@@ -436,6 +483,8 @@ var (
 func init() {
 	AttachedFilesTable.ForeignKeys[0].RefTable = FilesTable
 	AttachedFilesTable.ForeignKeys[1].RefTable = ProcessesTable
+	BookingsTable.ForeignKeys[0].RefTable = UsersTable
+	BookingsTable.ForeignKeys[1].RefTable = HotelsTable
 	FriendshipsTable.ForeignKeys[0].RefTable = UsersTable
 	FriendshipsTable.ForeignKeys[1].RefTable = UsersTable
 	GroupTagsTable.ForeignKeys[0].RefTable = TagsTable
