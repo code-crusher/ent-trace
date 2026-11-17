@@ -73,7 +73,6 @@ Notice that new files were created from our schema definition:
 ```console
 ├── ent
 │   ├── client.go
-│   ├── config.go
 // .... many more
 │   ├── user
 │   ├── user.go

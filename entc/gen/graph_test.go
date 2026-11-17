@@ -595,6 +595,21 @@ func TestGraph_Gen(t *testing.T) {
 		_, err := os.Stat(fmt.Sprintf("%s/%s.go", target, name))
 		require.NoError(err)
 	}
+	// Ensure that files of templates removed from the codegen (e.g. config.go,
+	// context.go) are deleted from the target directory if they were generated
+	// by older versions of ent.
+	for _, name := range deletedTemplates {
+		require.NoError(os.WriteFile(filepath.Join(target, name), []byte("package ent"), 0o644))
+	}
+	require.NoError(graph.Gen())
+	for _, name := range deletedTemplates {
+		_, err = os.Stat(filepath.Join(target, name))
+		require.True(os.IsNotExist(err))
+	}
+	// Ensure that the config code resides in the client file and no separate config.go is generated.
+	content, err := os.ReadFile(filepath.Join(target, "client.go"))
+	require.NoError(err)
+	require.Contains(string(content), "func newConfig(opts ...Option) config")
 	// Ensure entity files were generated.
 	for _, format := range []string{"%s", "%s_create", "%s_update", "%s_delete", "%s_query"} {
 		_, err := os.Stat(fmt.Sprintf(fmt.Sprintf("%s/%s.go", target, format), "t1"))
