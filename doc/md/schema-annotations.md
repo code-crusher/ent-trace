@@ -89,6 +89,35 @@ func (User) Edges() []ent.Edge {
 The example above configures the foreign key to cascade the deletion of rows in the parent table to the matching
 rows in the child table.
 
+## Edge Index Annotations
+
+For one-to-one relations, the uniqueness of the foreign key is enforced by a unique index. By annotating the edge
+with [index annotations](schema-indexes.md) (e.g. `entsql.IndexWhere`), this unique index can be configured. This
+becomes useful when using [soft delete](interceptors.mdx), where uniqueness should be applied only to rows that
+were not deleted:
+
+```go title="ent/schema/channel_instagram.go" {13}
+// Edges of the ChannelInstagram.
+func (ChannelInstagram) Edges() []ent.Edge {
+	return []ent.Edge{
+		edge.From("inbox", Inbox.Type).
+			Field("inbox_id").
+			Ref("channel_instagram").
+			Unique().
+			Required().
+			Annotations(entsql.IndexWhere("deleted_at IS NULL")),
+	}
+}
+```
+
+The example above generates the following SQL statement:
+
+```sql
+CREATE UNIQUE INDEX "channel_instagrams_inbox_id_key" ON "channel_instagrams" ("inbox_id") WHERE (deleted_at IS NULL);
+```
+
+Note that partial indexes are supported only in PostgreSQL and SQLite. For MySQL, a plain unique index is created.
+
 ## Database Comments
 
 By default, table and column comments are not stored in the database. However, this functionality can be enabled by

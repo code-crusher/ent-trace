@@ -768,3 +768,96 @@ func TestEdgeFieldCollation(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "utf8mb4_bin", col.Collation)
 }
+
+func TestPartialEdgeIndex(t *testing.T) {
+	indexWhere := dict("EntSQLIndexes", dict("where", "deleted_at IS NULL"))
+	var (
+		inbox = &load.Schema{
+			Name: "Inbox",
+			Fields: []*load.Field{
+				{Name: "id", Info: &field.TypeInfo{Type: field.TypeUUID}, Unique: true},
+			},
+			Edges: []*load.Edge{
+				{Name: "channel_instagram", Type: "ChannelInstagram", Unique: true},
+			},
+		}
+		channelInstagram = &load.Schema{
+			Name: "ChannelInstagram",
+			Fields: []*load.Field{
+				{Name: "deleted_at", Info: &field.TypeInfo{Type: field.TypeTime}, Nillable: true, Optional: true},
+				{Name: "inbox_id", Info: &field.TypeInfo{Type: field.TypeUUID}},
+			},
+			Edges: []*load.Edge{
+				// The inverse edge holds the foreign key and is annotated with
+				// a partial index predicate (e.g. for soft-delete support).
+				{Name: "inbox", Type: "Inbox", RefName: "channel_instagram", Field: "inbox_id", Unique: true, Required: true, Inverse: true, Annotations: indexWhere},
+			},
+		}
+	)
+	g, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, inbox, channelInstagram)
+	require.NoError(t, err)
+	tables, err := g.Tables()
+	require.NoError(t, err)
+
+	idx := slices.IndexFunc(tables, func(t *schema.Table) bool { return t.Name == "channel_instagrams" })
+	require.NotEqual(t, -1, idx, "channel_instagrams table should exist")
+	ciTable := tables[idx]
+
+	// The foreign-key column is not unique, as the uniqueness
+	// is enforced by the partial index below.
+	col, ok := ciTable.Column("inbox_id")
+	require.True(t, ok)
+	require.False(t, col.Unique)
+
+	// The unique constraint is a partial index with the predicate
+	// defined in the edge annotation.
+	index, ok := ciTable.Index("channel_instagrams_inbox_id_key")
+	require.True(t, ok, "unique index should exist")
+	require.True(t, index.Unique)
+	require.NotNil(t, index.Annotation)
+	require.Equal(t, "deleted_at IS NULL", index.Annotation.Where)
+
+	// Sanity check: without the annotation, the foreign-key column
+	// is unique and no explicit index is added.
+	channelInstagram.Edges[0].Annotations = nil
+	g, err = NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, inbox, channelInstagram)
+	require.NoError(t, err)
+	tables, err = g.Tables()
+	require.NoError(t, err)
+	ciTable = tables[slices.IndexFunc(tables, func(t *schema.Table) bool { return t.Name == "channel_instagrams" })]
+	col, ok = ciTable.Column("inbox_id")
+	require.True(t, ok)
+	require.True(t, col.Unique)
+	_, ok = ciTable.Index("channel_instagrams_inbox_id_key")
+	require.False(t, ok, "explicit index should not exist without the annotation")
+
+	// The annotation can also be defined on the assoc edge (the edge
+	// that references the inverse edge holding the foreign-key).
+	inbox.Edges[0].Annotations = indexWhere
+	channelInstagram.Edges[0].Annotations = nil
+	g, err = NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, inbox, channelInstagram)
+	require.NoError(t, err)
+	tables, err = g.Tables()
+	require.NoError(t, err)
+	ciTable = tables[slices.IndexFunc(tables, func(t *schema.Table) bool { return t.Name == "channel_instagrams" })]
+	index, ok = ciTable.Index("channel_instagrams_inbox_id_key")
+	require.True(t, ok, "unique index should exist")
+	require.True(t, index.Unique)
+	require.Equal(t, "deleted_at IS NULL", index.Annotation.Where)
+
+	// Ensure the generated migration schema contains the partial index.
+	target := filepath.Join(t.TempDir(), "ent")
+	g, err = NewGraph(&Config{
+		Package: "entc/gen",
+		Target:  target,
+		Storage: drivers[0],
+		IDType:  &field.TypeInfo{Type: field.TypeUUID},
+	}, inbox, channelInstagram)
+	require.NoError(t, err)
+	require.NoError(t, g.Gen())
+	c, err := os.ReadFile(filepath.Join(target, "migrate", "schema.go"))
+	require.NoError(t, err)
+	require.Contains(t, string(c), `Name:    "channel_instagrams_inbox_id_key"`)
+	require.Contains(t, string(c), `Unique:  true`)
+	require.Contains(t, string(c), `Where: "deleted_at IS NULL"`)
+}

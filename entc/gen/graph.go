@@ -20,6 +20,7 @@ import (
 	"strings"
 	"text/template/parse"
 
+	"entgo.io/ent/dialect/entsql"
 	"entgo.io/ent/dialect/sql/schema"
 	"entgo.io/ent/entc/load"
 	"entgo.io/ent/schema/field"
@@ -725,6 +726,7 @@ func (g *Graph) Tables() (all []*schema.Table, err error) {
 					RefColumns: []*schema.Column{ref.PrimaryKey[0]},
 					Symbol:     fkSymbol(e, owner, ref),
 				})
+				mayAddFKIndex(e, owner, column)
 			case M2O:
 				ref, owner := tables[e.Type.Table()], tables[e.Rel.Table]
 				column := fkColumn(e, owner, ref.PrimaryKey[0])
@@ -857,14 +859,44 @@ func fkColumn(e *Edge, owner *schema.Table, refPK *schema.Column) *schema.Column
 	// If the foreign-key also functions as a primary key, it cannot be nullable.
 	ispk := len(owner.PrimaryKey) == 1 && owner.PrimaryKey[0].Name == e.Rel.Column()
 	column := &schema.Column{Name: e.Rel.Column(), Size: refPK.Size, Type: refPK.Type, SchemaType: refPK.SchemaType, Nullable: !ispk}
-	// O2O relations are enforced using a unique index.
-	column.Unique = e.Rel.Type == O2O
+	// O2O relations are enforced using a unique index. However, if index options
+	// were configured on the edge (e.g. entsql.IndexWhere for soft-delete), the
+	// uniqueness is enforced by an explicit index added in mayAddFKIndex.
+	column.Unique = e.Rel.Type == O2O && fkIndexAnnotation(e) == nil
 	// Foreign key was defined as an edge field.
 	if e.Rel.fk != nil && e.Rel.fk.Field != nil {
 		fc := e.Rel.fk.Field.Column()
 		column.Comment, column.Default, column.Collation, column.Attr, column.Enums = fc.Comment, fc.Default, fc.Collation, fc.Attr, fc.Enums
 	}
 	return column
+}
+
+// fkIndexAnnotation returns the entsql index annotation defined on the edge,
+// or its inverse reference (if exists).
+func fkIndexAnnotation(e *Edge) *entsql.IndexAnnotation {
+	ant := sqlIndexAnnotate(e.Annotations)
+	if ant == nil && e.Ref != nil {
+		ant = sqlIndexAnnotate(e.Ref.Annotations)
+	}
+	return ant
+}
+
+// mayAddFKIndex adds the unique index that enforces the O2O relation on the
+// foreign-key column of the given edge. The index is added only if index options
+// were configured on the edge (or its inverse reference), such as
+// entsql.IndexWhere for defining a partial unique index on tables that support
+// soft-delete. Its name follows the implicit index naming convention
+// (<table>_<column>_key) used by the migration engine.
+func mayAddFKIndex(e *Edge, owner *schema.Table, column *schema.Column) {
+	ant := fkIndexAnnotation(e)
+	if ant == nil || e.Rel.Type != O2O {
+		return
+	}
+	name := fmt.Sprintf("%s_%s_key", owner.Name, column.Name)
+	owner.AddIndex(name, true, []string{column.Name})
+	if index, ok := owner.Index(name); ok {
+		index.Annotation = ant
+	}
 }
 
 func addCompositePK(t *schema.Table, n *Type) error {
