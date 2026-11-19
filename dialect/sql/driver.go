@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
+	"sync"
 
 	"entgo.io/ent/dialect"
 )
@@ -20,6 +21,17 @@ import (
 type Driver struct {
 	Conn
 	dialect string
+	// driverName is the name of the database driver that was used
+	// for opening the connection. It is set only by Open, and used
+	// by Refresh for re-opening the connection with a new source.
+	driverName string
+	// mu protects the Conn and closed fields from concurrent access
+	// by queries and Refresh or Close calls.
+	mu     sync.RWMutex
+	closed bool
+	// refreshMu serializes Refresh calls, as it is executed without
+	// holding mu to avoid blocking queries on network operations.
+	refreshMu sync.Mutex
 }
 
 // NewDriver creates a new Driver with the given Conn and dialect.
@@ -28,12 +40,14 @@ func NewDriver(dialect string, c Conn) *Driver {
 }
 
 // Open wraps the database/sql.Open method and returns a dialect.Driver that implements the an ent/dialect.Driver interface.
-func Open(dialect, source string) (*Driver, error) {
-	db, err := sql.Open(dialect, source)
+func Open(driverName, source string) (*Driver, error) {
+	db, err := sql.Open(driverName, source)
 	if err != nil {
 		return nil, err
 	}
-	return NewDriver(dialect, Conn{db, dialect}), nil
+	d := NewDriver(driverName, Conn{db, driverName})
+	d.driverName = driverName
+	return d, nil
 }
 
 // OpenDB wraps the given database/sql.DB method with a Driver.
@@ -42,12 +56,19 @@ func OpenDB(dialect string, db *sql.DB) *Driver {
 }
 
 // DB returns the underlying *sql.DB instance.
-func (d Driver) DB() *sql.DB {
+func (d *Driver) DB() *sql.DB {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.db()
+}
+
+// db returns the underlying *sql.DB instance without holding the lock.
+func (d *Driver) db() *sql.DB {
 	return d.ExecQuerier.(*sql.DB)
 }
 
 // Dialect implements the dialect.Dialect method.
-func (d Driver) Dialect() string {
+func (d *Driver) Dialect() string {
 	// If the underlying driver is wrapped with a telemetry driver.
 	for _, name := range []string{dialect.MySQL, dialect.SQLite, dialect.Postgres} {
 		if strings.HasPrefix(d.dialect, name) {
@@ -57,6 +78,20 @@ func (d Driver) Dialect() string {
 	return d.dialect
 }
 
+// Exec implements the dialect.Exec method.
+func (d *Driver) Exec(ctx context.Context, query string, args, v any) error {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.Conn.Exec(ctx, query, args, v)
+}
+
+// Query implements the dialect.Query method.
+func (d *Driver) Query(ctx context.Context, query string, args, v any) error {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.Conn.Query(ctx, query, args, v)
+}
+
 // Tx starts and returns a transaction.
 func (d *Driver) Tx(ctx context.Context) (dialect.Tx, error) {
 	return d.BeginTx(ctx, nil)
@@ -64,7 +99,9 @@ func (d *Driver) Tx(ctx context.Context) (dialect.Tx, error) {
 
 // BeginTx starts a transaction with options.
 func (d *Driver) BeginTx(ctx context.Context, opts *TxOptions) (dialect.Tx, error) {
-	tx, err := d.DB().BeginTx(ctx, opts)
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	tx, err := d.db().BeginTx(ctx, opts)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +112,76 @@ func (d *Driver) BeginTx(ctx context.Context, opts *TxOptions) (dialect.Tx, erro
 }
 
 // Close closes the underlying connection.
-func (d *Driver) Close() error { return d.DB().Close() }
+func (d *Driver) Close() error {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.closed = true
+	return d.db().Close()
+}
+
+// Refresh replaces the underlying connection pool with a new one that is
+// created from the given data source name. It allows refreshing the data
+// source of a running application, such as the address, username or
+// password of the database, without restarting it. For example:
+//
+//	drv, err := sql.Open("mysql", "<old-dsn>")
+//	if err != nil {
+//		return err
+//	}
+//	client := ent.NewClient(ent.Driver(drv))
+//	// When the data source is changed (e.g. rotated credentials):
+//	if err := drv.Refresh(ctx, "<new-dsn>"); err != nil {
+//		return err
+//	}
+//
+// The new data source is verified by pinging the database before the
+// existing pool is replaced. Hence, if the new data source is invalid,
+// the driver keeps using the previous one. After a successful refresh,
+// the previous pool is closed. Connections that are still in use, such
+// as those held by running transactions, are closed once they are done.
+//
+// Note, Refresh is supported only for drivers that were created with Open.
+func (d *Driver) Refresh(ctx context.Context, source string) error {
+	d.refreshMu.Lock()
+	defer d.refreshMu.Unlock()
+	// driverName is set once by Open and is immutable.
+	if d.driverName == "" {
+		return errors.New("dialect/sql: refresh is supported only for drivers created with Open")
+	}
+	if d.isClosed() {
+		return errors.New("dialect/sql: refresh a closed driver")
+	}
+	// The new pool is opened and verified before acquiring the write
+	// lock, to avoid blocking in-flight queries on network operations.
+	db, err := sql.Open(d.driverName, source)
+	if err != nil {
+		return fmt.Errorf("dialect/sql: open refreshed connection: %w", err)
+	}
+	if err := db.PingContext(ctx); err != nil {
+		_ = db.Close()
+		return fmt.Errorf("dialect/sql: ping refreshed connection: %w", err)
+	}
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	// The driver may have been closed while the new pool was verified.
+	if d.closed {
+		_ = db.Close()
+		return errors.New("dialect/sql: refresh a closed driver")
+	}
+	old := d.db()
+	d.ExecQuerier = db
+	if err := old.Close(); err != nil {
+		return fmt.Errorf("dialect/sql: close previous connection: %w", err)
+	}
+	return nil
+}
+
+// isClosed reports whether the driver was closed.
+func (d *Driver) isClosed() bool {
+	d.mu.RLock()
+	defer d.mu.RUnlock()
+	return d.closed
+}
 
 // Tx implements dialect.Tx interface.
 type Tx struct {

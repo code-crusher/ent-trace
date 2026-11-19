@@ -60,6 +60,51 @@ func Open() (*ent.Client, error) {
 }
 ```
 
+## Refresh the Data Source at Runtime
+
+The `Driver` returned by `sql.Open` supports replacing its data source (i.e. the
+address, username or password of the database) at runtime using the `Refresh`
+method. This allows rotating database credentials, or switching to a different
+database, without restarting the application:
+
+```go
+package main
+
+import (
+    "context"
+    "log"
+
+    "<your_project>/ent"
+    "entgo.io/ent/dialect/sql"
+)
+
+func main() {
+    drv, err := sql.Open("mysql", "<old-dsn>")
+    if err != nil {
+        log.Fatal(err)
+    }
+    client := ent.NewClient(ent.Driver(drv))
+    ctx := context.Background()
+
+    // When the data source is changed (e.g. rotated credentials):
+    if err := drv.Refresh(ctx, "<new-dsn>"); err != nil {
+        log.Fatal(err)
+    }
+    // The client keeps using the same driver, but new queries are
+    // executed against the new data source.
+    if err := client.User.Create().SetName("a8m").Exec(ctx); err != nil {
+        log.Fatal(err)
+    }
+}
+```
+
+The new data source is verified by pinging the database before replacing the
+connection pool, so a failed refresh (e.g. wrong credentials) keeps the previous
+connection pool in use. After a successful refresh, the previous pool is closed,
+and connections that are still in use (e.g. by running transactions) are closed
+when they are done. Note that pool settings, such as `SetMaxOpenConns`, are not
+carried over to the new pool and should be re-applied on `drv.DB()` if needed.
+
 ## Use Opencensus With MySQL
 
 ```go
