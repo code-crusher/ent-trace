@@ -190,3 +190,7 @@ query {
 Since an Ent query can eager-load more than one edge, it is not possible to load all associations in a single
 `JOIN` operation. Therefore, Ent executes additional query to load each association. This expected to be optimized
 in future versions.
+
+Note that, the `With<E>` options are applied statically when the query is built. So, eager-loading a tree
+(of the same type) of unknown depth is not possible with them. For that, use a recursive CTE as shown
+in [O2M Same Type](schema-edges.mdx#o2m-same-type).

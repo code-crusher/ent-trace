@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"log"
 
+	"entgo.io/ent/dialect/sql"
+
 	"entgo.io/ent/examples/o2mrecur/ent"
 	"entgo.io/ent/examples/o2mrecur/ent/node"
 
@@ -33,6 +35,7 @@ func Example_o2mRecur() {
 	// Tree leafs [1 3 5]
 	// [1 3 5]
 	// Node(id=1, value=2, parent_id=0)
+	// WithDescendants: [Node(id=1, value=2, parent_id=0) Node(id=2, value=1, parent_id=1) Node(id=3, value=4, parent_id=1) Node(id=4, value=3, parent_id=3) Node(id=5, value=5, parent_id=3)]
 }
 
 func Do(ctx context.Context, client *ent.Client) error {
@@ -98,5 +101,49 @@ func Do(ctx context.Context, client *ent.Client) error {
 	fmt.Println(orphan)
 	// Output: Node(id=1, value=2, parent_id=0)
 
+	// Get the root node with all its descendants (until the leaf nodes).
+	descendants, err := WithDescendants(ctx, client, root)
+	if err != nil {
+		return fmt.Errorf("loading descendants: %w", err)
+	}
+	fmt.Println("WithDescendants:", descendants)
 	return nil
+}
+
+// WithDescendants returns the given node with all its descendants (until the
+// leaf nodes) as a flat list. Note that, eager-loading (e.g. WithChildren)
+// loads a static number of levels, and therefore, cannot be used for loading
+// a tree of unknown depth. In such cases, a recursive CTE can be used as follows.
+//
+// This function assumes the schema uses an edge field named "parent_id" to
+// store the parent identifier (i.e. Field("parent_id")).
+func WithDescendants(ctx context.Context, client *ent.Client, n *ent.Node) ([]*ent.Node, error) {
+	return client.
+		Node.
+		Query().
+		Where(func(s *sql.Selector) {
+			t1 := sql.Table(node.Table)
+			with := sql.WithRecursive("tree", node.FieldID, node.FieldParentID)
+			with.As(
+				// The initial `SELECT` statement is executed once at the start,
+				// and produces the initial row for the recursion.
+				sql.Select(t1.Columns(node.FieldID, node.FieldParentID)...).
+					From(t1).
+					Where(sql.EQ(t1.C(node.FieldID), n.ID)).
+					// Merge the `SELECT` statement above with the following:
+					UnionAll(
+						// A `SELECT` statement that produces additional rows and recurses
+						// by referring to the CTE name ("tree"), and ends when there are
+						// no more new rows.
+						sql.Select(t1.Columns(node.FieldID, node.FieldParentID)...).
+							From(t1).
+							Join(with).
+							On(t1.C(node.FieldParentID), with.C(node.FieldID)),
+					),
+			)
+			// Join the root `SELECT` query with the CTE result (`WITH` clause).
+			s.Prefix(with).Join(with).On(s.C(node.FieldID), with.C(node.FieldID))
+		}).
+		Order(ent.Asc(node.FieldID)).
+		All(ctx)
 }

@@ -789,6 +789,52 @@ func (Node) Edges() []ent.Edge {
 
 The full example exists in [GitHub](https://github.com/ent/ent/tree/master/examples/o2mrecur).
 
+### Loading the Whole Tree
+
+Eager-loading (`WithChildren`) populates a fixed number of levels, since the `With<E>` options
+are applied statically when the query is built. Therefore, they cannot be used to load a tree
+of unknown depth until the leaf nodes. Also note, that the `With<E>` options are evaluated
+when the query is built, and not when it's executed, so attempting to count edges inside them
+(e.g. `q.QueryChildren().Count(ctx)`) either returns the number of all entities in the table,
+or leads to infinite recursion.
+
+If you need to load a whole tree (or a subtree) until the leaf nodes, use a recursive CTE as follows:
+
+```go
+// WithDescendants returns the given node with all its descendants (until the
+// leaf nodes) as a flat list.
+func WithDescendants(ctx context.Context, client *ent.Client, n *ent.Node) ([]*ent.Node, error) {
+	return client.Node.
+		Query().
+		Where(func(s *sql.Selector) {
+			t1 := sql.Table(node.Table)
+			with := sql.WithRecursive("tree", node.FieldID, node.FieldParentID)
+			with.As(
+				// The initial `SELECT` statement is executed once at the start,
+				// and produces the initial row for the recursion.
+				sql.Select(t1.Columns(node.FieldID, node.FieldParentID)...).
+					From(t1).
+					Where(sql.EQ(t1.C(node.FieldID), n.ID)).
+					// Merge the `SELECT` statement above with the following:
+					UnionAll(
+						// A `SELECT` statement that produces additional rows and recurses
+						// by referring to the CTE name ("tree"), and ends when there are
+						// no more new rows.
+						sql.Select(t1.Columns(node.FieldID, node.FieldParentID)...).
+							From(t1).
+							Join(with).
+							On(t1.C(node.FieldParentID), with.C(node.FieldID)),
+					),
+			)
+			// Join the root `SELECT` query with the CTE result (`WITH` clause).
+			s.Prefix(with).Join(with).On(s.C(node.FieldID), with.C(node.FieldID))
+		}).
+		All(ctx)
+}
+```
+
+The full example exists in [GitHub](https://github.com/ent/ent/tree/master/examples/o2mrecur).
+
 ## M2M Two Types
 
 <Tabs>
