@@ -823,6 +823,12 @@ won't be printed and they will be omitted when encoding.
 
 Note that sensitive fields cannot have struct tags.
 
+Serialization extensions, such as [`entgql`](https://pkg.go.dev/entgo.io/contrib/entgql)
+and [`entproto`](https://pkg.go.dev/entgo.io/contrib/entproto), follow this behavior and
+skip sensitive fields when generating the exposed schema (e.g. GraphQL types and protobuf
+messages). Use the extension's skip annotation (e.g. `entproto.Skip()`) to exclude fields
+that are not sensitive but should not be exposed.
+
 ```go
 // User schema.
 type User struct {
