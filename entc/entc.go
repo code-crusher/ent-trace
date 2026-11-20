@@ -32,13 +32,13 @@ func LoadGraph(schemaPath string, cfg *gen.Config) (*gen.Graph, error) {
 		return nil, err
 	}
 	cfg.Schema = spec.PkgPath
-	if cfg.Package == "" {
-		// default package-path for codegen is one package
-		// before the schema package (`<project>/ent/schema`).
-		cfg.Package = path.Dir(spec.PkgPath)
-	}
 	if err := defaultTarget(schemaPath, cfg); err != nil {
 		return nil, err
+	}
+	if cfg.Package == "" {
+		if err := defaultPackage(schemaPath, spec, cfg); err != nil {
+			return nil, err
+		}
 	}
 	return gen.NewGraph(cfg, spec.Schemas...)
 }
@@ -424,5 +424,32 @@ func defaultTarget(schemaPath string, cfg *gen.Config) error {
 	}
 	// Default target-path for codegen is one dir above the schema.
 	cfg.Target = filepath.Dir(abs)
+	return nil
+}
+
+// defaultPackage computes and sets the default package-path for codegen.
+// By default, it is one package before the schema package (`<project>/ent/schema`),
+// but if the target directory was customized (e.g. `ent generate --target`),
+// it is resolved from the target directory instead.
+func defaultPackage(schemaPath string, spec *load.SchemaSpec, cfg *gen.Config) error {
+	// Default package-path for codegen is one package
+	// before the schema package (`<project>/ent/schema`).
+	cfg.Package = path.Dir(spec.PkgPath)
+	schema, err := filepath.Abs(schemaPath)
+	if err != nil {
+		return err
+	}
+	target, err := filepath.Abs(cfg.Target)
+	if err != nil {
+		return err
+	}
+	if target == filepath.Dir(schema) {
+		return nil
+	}
+	pkgPath, err := PkgPath(nil, cfg.Target)
+	if err != nil {
+		return err
+	}
+	cfg.Package = pkgPath
 	return nil
 }

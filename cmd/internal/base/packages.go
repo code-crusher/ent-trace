@@ -5,12 +5,9 @@
 package base
 
 import (
-	"fmt"
-	"os"
-	"path"
-	"path/filepath"
-
 	"golang.org/x/tools/go/packages"
+
+	"entgo.io/ent/entc"
 )
 
 // DefaultConfig for loading Go base.
@@ -24,32 +21,5 @@ func PkgPath(config *packages.Config, target string) (string, error) {
 	if config == nil {
 		config = DefaultConfig
 	}
-	pathCheck, err := filepath.Abs(target)
-	if err != nil {
-		return "", err
-	}
-	var parts []string
-	if _, err := os.Stat(pathCheck); os.IsNotExist(err) {
-		parts = append(parts, filepath.Base(pathCheck))
-		pathCheck = filepath.Dir(pathCheck)
-	}
-	// Try maximum 2 directories above the given
-	// target to find the root package or module.
-	for i := 0; i < 2; i++ {
-		pkgs, err := packages.Load(config, pathCheck)
-		if err != nil {
-			return "", fmt.Errorf("load package info: %w", err)
-		}
-		if len(pkgs) == 0 || len(pkgs[0].Errors) != 0 {
-			parts = append(parts, filepath.Base(pathCheck))
-			pathCheck = filepath.Dir(pathCheck)
-			continue
-		}
-		pkgPath := pkgs[0].PkgPath
-		for j := len(parts) - 1; j >= 0; j-- {
-			pkgPath = path.Join(pkgPath, parts[j])
-		}
-		return pkgPath, nil
-	}
-	return "", fmt.Errorf("root package or module was not found for: %s", target)
+	return entc.PkgPath(config, target)
 }
