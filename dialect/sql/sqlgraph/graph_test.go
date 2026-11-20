@@ -6,10 +6,12 @@ package sqlgraph
 
 import (
 	"context"
+	dbsql "database/sql"
 	"database/sql/driver"
 	"errors"
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 	"testing"
 
@@ -18,6 +20,7 @@ import (
 	"entgo.io/ent/schema/field"
 
 	"github.com/DATA-DOG/go-sqlmock"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/stretchr/testify/require"
 )
 
@@ -655,7 +658,7 @@ func TestHasNeighborsWith(t *testing.T) {
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("expired", false))
 			},
-			wantQuery: `SELECT * FROM "users" WHERE EXISTS (SELECT "cards"."owner_id" FROM "cards" WHERE "users"."id" = "cards"."owner_id" AND NOT "expired")`,
+			wantQuery: `SELECT * FROM "users" WHERE "users"."id" IN (SELECT "cards"."owner_id" FROM "cards" WHERE "cards"."owner_id" IS NOT NULL AND NOT "expired")`,
 		},
 		{
 			name: "O2O/inverse",
@@ -668,7 +671,7 @@ func TestHasNeighborsWith(t *testing.T) {
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("name", "a8m"))
 			},
-			wantQuery: `SELECT * FROM "cards" WHERE EXISTS (SELECT "users"."id" FROM "users" WHERE "cards"."owner_id" = "users"."id" AND "name" = $1)`,
+			wantQuery: `SELECT * FROM "cards" WHERE "cards"."owner_id" IS NOT NULL AND "cards"."owner_id" IN (SELECT "users"."id" FROM "users" WHERE "name" = $1)`,
 			wantArgs:  []any{"a8m"},
 		},
 		{
@@ -684,7 +687,7 @@ func TestHasNeighborsWith(t *testing.T) {
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("name", "pedro"))
 			},
-			wantQuery: `SELECT * FROM "users" WHERE "last_name" = $1 AND EXISTS (SELECT "pets"."owner_id" FROM "pets" WHERE "users"."id" = "pets"."owner_id" AND "name" = $2)`,
+			wantQuery: `SELECT * FROM "users" WHERE "last_name" = $1 AND "users"."id" IN (SELECT "pets"."owner_id" FROM "pets" WHERE "pets"."owner_id" IS NOT NULL AND "name" = $2)`,
 			wantArgs:  []any{"mashraki", "pedro"},
 		},
 		{
@@ -700,7 +703,7 @@ func TestHasNeighborsWith(t *testing.T) {
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("last_name", "mashraki"))
 			},
-			wantQuery: `SELECT * FROM "pets" WHERE "name" = $1 AND EXISTS (SELECT "users"."id" FROM "users" WHERE "pets"."owner_id" = "users"."id" AND "last_name" = $2)`,
+			wantQuery: `SELECT * FROM "pets" WHERE "name" = $1 AND ("pets"."owner_id" IS NOT NULL AND "pets"."owner_id" IN (SELECT "users"."id" FROM "users" WHERE "last_name" = $2))`,
 			wantArgs:  []any{"pedro", "mashraki"},
 		},
 		{
@@ -778,7 +781,7 @@ WHERE "groups"."id" IN
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("expired", false))
 			},
-			wantQuery: `SELECT * FROM "s1"."users" WHERE EXISTS (SELECT "s2"."cards"."owner_id" FROM "s2"."cards" WHERE "s1"."users"."id" = "s2"."cards"."owner_id" AND NOT "expired")`,
+			wantQuery: `SELECT * FROM "s1"."users" WHERE "s1"."users"."id" IN (SELECT "s2"."cards"."owner_id" FROM "s2"."cards" WHERE "s2"."cards"."owner_id" IS NOT NULL AND NOT "expired")`,
 		},
 		{
 			name: "schema/O2M",
@@ -797,7 +800,7 @@ WHERE "groups"."id" IN
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("name", "pedro"))
 			},
-			wantQuery: `SELECT * FROM "s1"."users" WHERE "last_name" = $1 AND EXISTS (SELECT "s2"."pets"."owner_id" FROM "s2"."pets" WHERE "s1"."users"."id" = "s2"."pets"."owner_id" AND "name" = $2)`,
+			wantQuery: `SELECT * FROM "s1"."users" WHERE "last_name" = $1 AND "s1"."users"."id" IN (SELECT "s2"."pets"."owner_id" FROM "s2"."pets" WHERE "s2"."pets"."owner_id" IS NOT NULL AND "name" = $2)`,
 			wantArgs:  []any{"mashraki", "pedro"},
 		},
 		{
@@ -838,7 +841,7 @@ WHERE "s1"."users"."id" IN
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("name", "pedro"))
 			},
-			wantQuery: `SELECT * FROM (SELECT * FROM "users") AS "users" WHERE "last_name" = $1 AND EXISTS (SELECT "pets"."owner_id" FROM "pets" WHERE "users"."id" = "pets"."owner_id" AND "name" = $2)`,
+			wantQuery: `SELECT * FROM (SELECT * FROM "users") AS "users" WHERE "last_name" = $1 AND "users"."id" IN (SELECT "pets"."owner_id" FROM "pets" WHERE "pets"."owner_id" IS NOT NULL AND "name" = $2)`,
 			wantArgs:  []any{"mashraki", "pedro"},
 		},
 		{
@@ -854,7 +857,7 @@ WHERE "s1"."users"."id" IN
 			predicate: func(s *sql.Selector) {
 				s.Where(sql.EQ("last_name", "mashraki"))
 			},
-			wantQuery: `SELECT * FROM (SELECT * FROM "pets") AS "pets" WHERE "name" = $1 AND EXISTS (SELECT "users"."id" FROM "users" WHERE "pets"."owner_id" = "users"."id" AND "last_name" = $2)`,
+			wantQuery: `SELECT * FROM (SELECT * FROM "pets") AS "pets" WHERE "name" = $1 AND ("pets"."owner_id" IS NOT NULL AND "pets"."owner_id" IN (SELECT "users"."id" FROM "users" WHERE "last_name" = $2))`,
 			wantArgs:  []any{"pedro", "mashraki"},
 		},
 		{
@@ -909,6 +912,218 @@ func TestHasNeighborsWithContext(t *testing.T) {
 			require.True(t, called, "expected predicate function to be called")
 		})
 	}
+}
+
+// hasNeighborsWithDB returns an in-memory SQLite database with the following
+// content:
+//
+//	users: (1, "a8m"), (2, "nati"), (3, "alex")
+//	pets:  (1, 1, "luna"), (2, 2, "pedro"), (3, NULL, "luna")
+//
+// Note that "alex" has no pets (NULL foreign-key) and pet 3 has a NULL owner.
+func hasNeighborsWithDB(t *testing.T) *dbsql.DB {
+	t.Helper()
+	db, err := dbsql.Open("sqlite3", "file:"+t.Name()+"?mode=memory&cache=shared")
+	require.NoError(t, err)
+	t.Cleanup(func() { require.NoError(t, db.Close()) })
+	db.SetMaxOpenConns(1)
+	_, err = db.Exec("CREATE TABLE users (id INTEGER PRIMARY KEY, name TEXT NOT NULL)")
+	require.NoError(t, err)
+	_, err = db.Exec("CREATE TABLE pets (id INTEGER PRIMARY KEY, owner_id INTEGER REFERENCES users(id), name TEXT NOT NULL)")
+	require.NoError(t, err)
+	for _, u := range []struct {
+		id   int
+		name string
+	}{{1, "a8m"}, {2, "nati"}, {3, "alex"}} {
+		_, err = db.Exec("INSERT INTO users (id, name) VALUES (?, ?)", u.id, u.name)
+		require.NoError(t, err)
+	}
+	for _, p := range []struct {
+		id      int
+		ownerID *int
+		name    string
+	}{
+		{1, intPtr(1), "luna"},
+		{2, intPtr(2), "pedro"},
+		{3, nil, "luna"},
+	} {
+		_, err = db.Exec("INSERT INTO pets (id, owner_id, name) VALUES (?, ?, ?)", p.id, p.ownerID, p.name)
+		require.NoError(t, err)
+	}
+	return db
+}
+
+func intPtr(i int) *int { return &i }
+
+// queryIDs builds the query from the given selector, runs it and returns
+// the sorted IDs it selected.
+func queryIDs(t *testing.T, db *dbsql.DB, s *sql.Selector) []int {
+	t.Helper()
+	query, args := s.Query()
+	return rawIDs(t, db, query, args...)
+}
+
+// rawIDs runs the given query and returns the sorted IDs it selected.
+func rawIDs(t *testing.T, db *dbsql.DB, query string, args ...any) []int {
+	t.Helper()
+	rows, err := db.Query(query, args...)
+	require.NoError(t, err, query)
+	defer rows.Close()
+	var ids []int
+	for rows.Next() {
+		var id int
+		require.NoError(t, rows.Scan(&id))
+		ids = append(ids, id)
+	}
+	require.NoError(t, rows.Err())
+	sort.Ints(ids)
+	return ids
+}
+
+// TestIssue4397HasNeighborsWithNullSemantics verifies the NULL-semantics of
+// the uncorrelated `IN` implementation of HasNeighborsWith, restored for
+// performance in #4397, against the correlated `EXISTS` form it replaces.
+// The `IS NOT NULL` guards keep the predicate NULL-safe when it is negated,
+// matching the `EXISTS` semantics (see the test cases below).
+func TestIssue4397HasNeighborsWithNullSemantics(t *testing.T) {
+	db := hasNeighborsWithDB(t)
+
+	// users(id) that have a pet named "luna".
+	hasLuna := func() *sql.Selector {
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("users"))
+		HasNeighborsWith(s, NewStep(
+			From("users", "id"),
+			To("pets", "id"),
+			Edge(O2M, false, "pets", "owner_id"),
+		), func(s *sql.Selector) {
+			s.Where(sql.EQ("name", "luna"))
+		})
+		return s
+	}
+
+	t.Run("O2M/positive", func(t *testing.T) {
+		// Only a8m (1) has a pet named "luna". The NULL owner_id of pet 3
+		// must not make the `IN` predicate NULL for all other users.
+		require.Equal(t, []int{1}, queryIDs(t, db, hasLuna()))
+	})
+
+	t.Run("O2M/negated", func(t *testing.T) {
+		// The IS NOT NULL guard in the subquery keeps the negated predicate
+		// NULL-safe: all users without such a pet are returned, including
+		// "alex" (3), who has no pets at all. Without the guard, the NULL
+		// from the subquery would make `NOT IN` never match.
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("users")).Where(
+			sql.Not(hasLuna().P()),
+		)
+		require.Equal(t, []int{2, 3}, queryIDs(t, db, s))
+	})
+
+	t.Run("O2M/matches/EXISTS", func(t *testing.T) {
+		// Both the positive and the negated forms must be equivalent to the
+		// correlated EXISTS implementation shipped in ent v0.14.x (#4060).
+		exists := "SELECT `users`.`id` FROM `users` WHERE EXISTS (SELECT `pets`.`owner_id` FROM `pets` WHERE `users`.`id` = `pets`.`owner_id` AND `name` = 'luna')"
+		require.Equal(t, rawIDs(t, db, exists), queryIDs(t, db, hasLuna()))
+		notExists := "SELECT `users`.`id` FROM `users` WHERE NOT EXISTS (SELECT `pets`.`owner_id` FROM `pets` WHERE `users`.`id` = `pets`.`owner_id` AND `name` = 'luna')"
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("users")).Where(
+			sql.Not(hasLuna().P()),
+		)
+		require.Equal(t, rawIDs(t, db, notExists), queryIDs(t, db, s))
+	})
+
+	// pets(id) that have an owner named "a8m" (inverse/M2O perspective).
+	hasOwnerA8m := func() *sql.Selector {
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("pets"))
+		HasNeighborsWith(s, NewStep(
+			From("pets", "id"),
+			To("users", "id"),
+			Edge(M2O, true, "pets", "owner_id"),
+		), func(s *sql.Selector) {
+			s.Where(sql.EQ("name", "a8m"))
+		})
+		return s
+	}
+
+	t.Run("M2O/positive", func(t *testing.T) {
+		// Only pet 1 is owned by a8m.
+		require.Equal(t, []int{1}, queryIDs(t, db, hasOwnerA8m()))
+	})
+
+	t.Run("M2O/negated", func(t *testing.T) {
+		// The IS NOT NULL guard on the outer foreign-key keeps the negated
+		// predicate NULL-safe: pet 3 (NULL owner) is returned together with
+		// pet 2, instead of being silently dropped.
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("pets")).Where(
+			sql.Not(hasOwnerA8m().P()),
+		)
+		require.Equal(t, []int{2, 3}, queryIDs(t, db, s))
+	})
+}
+
+// TestIssue4397HasNeighborsWithSelfReferential verifies that HasNeighborsWith
+// produces unambiguous queries for self-referential edges, where the source
+// and the edge tables are the same. The uncorrelated subquery does not
+// reference the outer table, unlike the correlated `EXISTS` form it replaces
+// (#4060), which required aliasing the table in the subquery.
+func TestIssue4397HasNeighborsWithSelfReferential(t *testing.T) {
+	db, err := dbsql.Open("sqlite3", "file:selfreferential?mode=memory&cache=shared")
+	require.NoError(t, err)
+	defer db.Close()
+	db.SetMaxOpenConns(1)
+	_, err = db.Exec("CREATE TABLE users (id INTEGER PRIMARY KEY, parent_id INTEGER REFERENCES users(id), name TEXT)")
+	require.NoError(t, err)
+	// a8m(1) has children 2 and 3; 4 has a NULL parent.
+	for _, u := range []struct {
+		id       int
+		parentID *int
+		name     string
+	}{
+		{1, nil, "a8m"},
+		{2, intPtr(1), "pedro"},
+		{3, intPtr(1), "xabi"},
+		{4, nil, "alex"},
+	} {
+		_, err = db.Exec("INSERT INTO users (id, parent_id, name) VALUES (?, ?, ?)", u.id, u.parentID, u.name)
+		require.NoError(t, err)
+	}
+
+	// users(id) that have children (O2M, "parent_id" resides on users).
+	hasChildren := func() *sql.Selector {
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("users"))
+		HasNeighborsWith(s, NewStep(
+			From("users", "id"),
+			To("users", "id"),
+			Edge(O2M, true, "users", "parent_id"),
+		), func(s *sql.Selector) {
+			s.Where(sql.EQ("name", "pedro"))
+		})
+		return s
+	}
+	t.Run("O2M", func(t *testing.T) {
+		require.Equal(t, []int{1}, queryIDs(t, db, hasChildren()))
+	})
+
+	// users(id) that have a parent (M2O, same table).
+	hasParent := func() *sql.Selector {
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("users"))
+		HasNeighborsWith(s, NewStep(
+			From("users", "id"),
+			To("users", "id"),
+			Edge(M2O, false, "users", "parent_id"),
+		), func(s *sql.Selector) {
+			s.Where(sql.EQ("name", "a8m"))
+		})
+		return s
+	}
+	t.Run("M2O", func(t *testing.T) {
+		require.Equal(t, []int{2, 3}, queryIDs(t, db, hasParent()))
+		s := sql.Dialect(dialect.SQLite).Select("id").From(sql.Table("users")).Where(
+			sql.Not(hasParent().P()),
+		)
+		// a8m (1) has no parent and alex (4) has a NULL parent_id. Both
+		// are returned by the negated form, as the IS NOT NULL guard keeps
+		// the predicate NULL-safe.
+		require.Equal(t, []int{1, 4}, queryIDs(t, db, s))
+	})
 }
 
 func TestOrderByNeighborsCount(t *testing.T) {
