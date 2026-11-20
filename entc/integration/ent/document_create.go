@@ -54,9 +54,21 @@ func (_c *DocumentCreate) SetNillableMetadata(v *[]byte) *DocumentCreate {
 	return _c
 }
 
+// ClearMetadata clears the value of the "metadata" field.
+func (_c *DocumentCreate) ClearMetadata() *DocumentCreate {
+	_c.mutation.ClearMetadata()
+	return _c
+}
+
 // SetPayload sets the "payload" field.
 func (_c *DocumentCreate) SetPayload(v *schema.DocPayload) *DocumentCreate {
 	_c.mutation.SetPayload(v)
+	return _c
+}
+
+// ClearPayload clears the value of the "payload" field.
+func (_c *DocumentCreate) ClearPayload() *DocumentCreate {
+	_c.mutation.ClearPayload()
 	return _c
 }
 
@@ -71,6 +83,12 @@ func (_c *DocumentCreate) SetNillableDescription(v *string) *DocumentCreate {
 	if v != nil {
 		_c.SetDescription(*v)
 	}
+	return _c
+}
+
+// ClearDescription clears the value of the "description" field.
+func (_c *DocumentCreate) ClearDescription() *DocumentCreate {
+	_c.mutation.ClearDescription()
 	return _c
 }
 
@@ -303,6 +321,8 @@ func (_c *DocumentCreate) createSpec() (*Document, *sqlgraph.CreateSpec, error) 
 		}
 		_spec.SetField(document.FieldPayload, field.TypeBytes, vv)
 		_node.Payload = value
+	} else if _c.mutation.PayloadCleared() {
+		_spec.ClearField(document.FieldPayload, field.TypeBytes)
 	}
 	return _node, _spec, nil
 }

@@ -67,7 +67,11 @@ in the LICENSE file in the root directory of this source tree.
 		}
 	{{ end }}
 
-	{{ if and $f.Optional $updater }}
+	{{/* Clear methods are generated for update builders, and for create builders of
+	     storages that support inserting an explicit NULL value (i.e. SQL). Edge-fields
+	     are excluded on create, as they are set (or omitted) using the edge setters. */}}
+	{{ $clearCreate := and $creator (not $f.IsEdgeField) (eq $.Storage.Name "sql") }}
+	{{ if and $f.Optional (or $updater $clearCreate) }}
 		{{ $func := print "Clear" $f.StructField }}
 		// {{ $func }} clears the value of the "{{ $f.Name }}" field.
 		func ({{ $receiver }} *{{ $builder }}) {{ $func }}() *{{ $builder }} {

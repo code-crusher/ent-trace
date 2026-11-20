@@ -62,6 +62,12 @@ func (_c *PetCreate) SetNillableUUID(v *uuid.UUID) *PetCreate {
 	return _c
 }
 
+// ClearUUID clears the value of the "uuid" field.
+func (_c *PetCreate) ClearUUID() *PetCreate {
+	_c.mutation.ClearUUID()
+	return _c
+}
+
 // SetNickname sets the "nickname" field.
 func (_c *PetCreate) SetNickname(v string) *PetCreate {
 	_c.mutation.SetNickname(v)
@@ -73,6 +79,12 @@ func (_c *PetCreate) SetNillableNickname(v *string) *PetCreate {
 	if v != nil {
 		_c.SetNickname(*v)
 	}
+	return _c
+}
+
+// ClearNickname clears the value of the "nickname" field.
+func (_c *PetCreate) ClearNickname() *PetCreate {
+	_c.mutation.ClearNickname()
 	return _c
 }
 
@@ -101,6 +113,12 @@ func (_c *PetCreate) SetNillableOptionalTime(v *time.Time) *PetCreate {
 	if v != nil {
 		_c.SetOptionalTime(*v)
 	}
+	return _c
+}
+
+// ClearOptionalTime clears the value of the "optional_time" field.
+func (_c *PetCreate) ClearOptionalTime() *PetCreate {
+	_c.mutation.ClearOptionalTime()
 	return _c
 }
 
@@ -236,10 +254,14 @@ func (_c *PetCreate) createSpec() (*Pet, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.UUID(); ok {
 		_spec.SetField(pet.FieldUUID, field.TypeUUID, value)
 		_node.UUID = value
+	} else if _c.mutation.UUIDCleared() {
+		_spec.ClearField(pet.FieldUUID, field.TypeUUID)
 	}
 	if value, ok := _c.mutation.Nickname(); ok {
 		_spec.SetField(pet.FieldNickname, field.TypeString, value)
 		_node.Nickname = value
+	} else if _c.mutation.NicknameCleared() {
+		_spec.ClearField(pet.FieldNickname, field.TypeString)
 	}
 	if value, ok := _c.mutation.Trained(); ok {
 		_spec.SetField(pet.FieldTrained, field.TypeBool, value)
@@ -248,6 +270,8 @@ func (_c *PetCreate) createSpec() (*Pet, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OptionalTime(); ok {
 		_spec.SetField(pet.FieldOptionalTime, field.TypeTime, value)
 		_node.OptionalTime = value
+	} else if _c.mutation.OptionalTimeCleared() {
+		_spec.ClearField(pet.FieldOptionalTime, field.TypeTime)
 	}
 	if nodes := _c.mutation.TeamIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

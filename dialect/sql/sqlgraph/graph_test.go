@@ -1168,6 +1168,39 @@ func TestCreateNode(t *testing.T) {
 			},
 		},
 		{
+			name: "fields/cleared",
+			spec: func() *CreateSpec {
+				spec := &CreateSpec{
+					Table: "users",
+					ID:    &FieldSpec{Column: "id", Type: field.TypeInt},
+				}
+				spec.SetField("age", field.TypeInt, 30)
+				spec.ClearField("name", field.TypeString)
+				return spec
+			}(),
+			expect: func(m sqlmock.Sqlmock) {
+				m.ExpectExec(escape("INSERT INTO `users` (`age`, `name`) VALUES (?, NULL)")).
+					WithArgs(30).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+		},
+		{
+			name: "fields/cleared/json",
+			spec: func() *CreateSpec {
+				spec := &CreateSpec{
+					Table: "users",
+					ID:    &FieldSpec{Column: "id", Type: field.TypeInt},
+				}
+				spec.ClearField("json", field.TypeJSON)
+				return spec
+			}(),
+			expect: func(m sqlmock.Sqlmock) {
+				// A cleared JSON field must be set to SQL NULL and not to the JSON literal "null".
+				m.ExpectExec(escape("INSERT INTO `users` (`json`) VALUES (NULL)")).
+					WillReturnResult(sqlmock.NewResult(1, 1))
+			},
+		},
+		{
 			name: "edges/m2o",
 			spec: &CreateSpec{
 				Table: "pets",
@@ -1513,6 +1546,36 @@ func TestBatchCreate(t *testing.T) {
 			expect: func(m sqlmock.Sqlmock) {
 				m.ExpectExec(escape("INSERT INTO `users` (`active`, `age`, `name`) VALUES (?, ?, ?), (?, ?, ?) ON DUPLICATE KEY UPDATE `active` = `users`.`active`, `age` = `users`.`age`, `name` = `users`.`name`")).
 					WithArgs(false, 32, "a8m", true, 30, "nati").
+					WillReturnResult(sqlmock.NewResult(10, 2))
+			},
+		},
+		{
+			name: "cleared fields",
+			spec: &BatchCreateSpec{
+				Nodes: []*CreateSpec{
+					func() *CreateSpec {
+						spec := &CreateSpec{
+							Table: "users",
+							ID:    &FieldSpec{Column: "id", Type: field.TypeInt},
+						}
+						spec.SetField("age", field.TypeInt, 32)
+						spec.ClearField("name", field.TypeString)
+						return spec
+					}(),
+					func() *CreateSpec {
+						spec := &CreateSpec{
+							Table: "users",
+							ID:    &FieldSpec{Column: "id", Type: field.TypeInt},
+						}
+						spec.SetField("age", field.TypeInt, 30)
+						spec.SetField("name", field.TypeString, "nati")
+						return spec
+					}(),
+				},
+			},
+			expect: func(m sqlmock.Sqlmock) {
+				m.ExpectExec(escape("INSERT INTO `users` (`age`, `name`) VALUES (?, NULL), (?, ?)")).
+					WithArgs(32, 30, "nati").
 					WillReturnResult(sqlmock.NewResult(10, 2))
 			},
 		},

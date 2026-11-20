@@ -43,6 +43,12 @@ func (_c *UserCreate) SetNillableOptionalInt(v *int) *UserCreate {
 	return _c
 }
 
+// ClearOptionalInt clears the value of the "optional_int" field.
+func (_c *UserCreate) ClearOptionalInt() *UserCreate {
+	_c.mutation.ClearOptionalInt()
+	return _c
+}
+
 // SetAge sets the "age" field.
 func (_c *UserCreate) SetAge(v int) *UserCreate {
 	_c.mutation.SetAge(v)
@@ -83,6 +89,12 @@ func (_c *UserCreate) SetNillableNickname(v *string) *UserCreate {
 	return _c
 }
 
+// ClearNickname clears the value of the "nickname" field.
+func (_c *UserCreate) ClearNickname() *UserCreate {
+	_c.mutation.ClearNickname()
+	return _c
+}
+
 // SetAddress sets the "address" field.
 func (_c *UserCreate) SetAddress(v string) *UserCreate {
 	_c.mutation.SetAddress(v)
@@ -94,6 +106,12 @@ func (_c *UserCreate) SetNillableAddress(v *string) *UserCreate {
 	if v != nil {
 		_c.SetAddress(*v)
 	}
+	return _c
+}
+
+// ClearAddress clears the value of the "address" field.
+func (_c *UserCreate) ClearAddress() *UserCreate {
+	_c.mutation.ClearAddress()
 	return _c
 }
 
@@ -111,6 +129,12 @@ func (_c *UserCreate) SetNillablePhone(v *string) *UserCreate {
 	return _c
 }
 
+// ClearPhone clears the value of the "phone" field.
+func (_c *UserCreate) ClearPhone() *UserCreate {
+	_c.mutation.ClearPhone()
+	return _c
+}
+
 // SetPassword sets the "password" field.
 func (_c *UserCreate) SetPassword(v string) *UserCreate {
 	_c.mutation.SetPassword(v)
@@ -122,6 +146,12 @@ func (_c *UserCreate) SetNillablePassword(v *string) *UserCreate {
 	if v != nil {
 		_c.SetPassword(*v)
 	}
+	return _c
+}
+
+// ClearPassword clears the value of the "password" field.
+func (_c *UserCreate) ClearPassword() *UserCreate {
+	_c.mutation.ClearPassword()
 	return _c
 }
 
@@ -167,6 +197,12 @@ func (_c *UserCreate) SetNillableSSOCert(v *string) *UserCreate {
 	return _c
 }
 
+// ClearSSOCert clears the value of the "SSOCert" field.
+func (_c *UserCreate) ClearSSOCert() *UserCreate {
+	_c.mutation.ClearSSOCert()
+	return _c
+}
+
 // SetFilesCount sets the "files_count" field.
 func (_c *UserCreate) SetFilesCount(v int) *UserCreate {
 	_c.mutation.SetFilesCount(v)
@@ -178,6 +214,12 @@ func (_c *UserCreate) SetNillableFilesCount(v *int) *UserCreate {
 	if v != nil {
 		_c.SetFilesCount(*v)
 	}
+	return _c
+}
+
+// ClearFilesCount clears the value of the "files_count" field.
+func (_c *UserCreate) ClearFilesCount() *UserCreate {
+	_c.mutation.ClearFilesCount()
 	return _c
 }
 
@@ -401,7 +443,7 @@ func (_c *UserCreate) defaults() {
 		v := user.DefaultLast
 		_c.mutation.SetLast(v)
 	}
-	if _, ok := _c.mutation.Address(); !ok {
+	if _, ok := _c.mutation.Address(); !ok && !_c.mutation.AddressCleared() {
 		v := user.DefaultAddress()
 		_c.mutation.SetAddress(v)
 	}
@@ -477,6 +519,8 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OptionalInt(); ok {
 		_spec.SetField(user.FieldOptionalInt, field.TypeInt, value)
 		_node.OptionalInt = value
+	} else if _c.mutation.OptionalIntCleared() {
+		_spec.ClearField(user.FieldOptionalInt, field.TypeInt)
 	}
 	if value, ok := _c.mutation.Age(); ok {
 		_spec.SetField(user.FieldAge, field.TypeInt, value)
@@ -493,18 +537,26 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Nickname(); ok {
 		_spec.SetField(user.FieldNickname, field.TypeString, value)
 		_node.Nickname = value
+	} else if _c.mutation.NicknameCleared() {
+		_spec.ClearField(user.FieldNickname, field.TypeString)
 	}
 	if value, ok := _c.mutation.Address(); ok {
 		_spec.SetField(user.FieldAddress, field.TypeString, value)
 		_node.Address = value
+	} else if _c.mutation.AddressCleared() {
+		_spec.ClearField(user.FieldAddress, field.TypeString)
 	}
 	if value, ok := _c.mutation.Phone(); ok {
 		_spec.SetField(user.FieldPhone, field.TypeString, value)
 		_node.Phone = value
+	} else if _c.mutation.PhoneCleared() {
+		_spec.ClearField(user.FieldPhone, field.TypeString)
 	}
 	if value, ok := _c.mutation.Password(); ok {
 		_spec.SetField(user.FieldPassword, field.TypeString, value)
 		_node.Password = value
+	} else if _c.mutation.PasswordCleared() {
+		_spec.ClearField(user.FieldPassword, field.TypeString)
 	}
 	if value, ok := _c.mutation.Role(); ok {
 		_spec.SetField(user.FieldRole, field.TypeEnum, value)
@@ -517,10 +569,14 @@ func (_c *UserCreate) createSpec() (*User, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SSOCert(); ok {
 		_spec.SetField(user.FieldSSOCert, field.TypeString, value)
 		_node.SSOCert = value
+	} else if _c.mutation.SSOCertCleared() {
+		_spec.ClearField(user.FieldSSOCert, field.TypeString)
 	}
 	if value, ok := _c.mutation.FilesCount(); ok {
 		_spec.SetField(user.FieldFilesCount, field.TypeInt, value)
 		_node.FilesCount = value
+	} else if _c.mutation.FilesCountCleared() {
+		_spec.ClearField(user.FieldFilesCount, field.TypeInt)
 	}
 	if nodes := _c.mutation.CardIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

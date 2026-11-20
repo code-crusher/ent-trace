@@ -78,7 +78,7 @@ func ({{ $receiver }} *{{ $builder }}) ExecX(ctx context.Context) {
 	func ({{ $receiver }} *{{ $builder }}) defaults() {{ if $runtimeRequired }}error{{ end }}{
 		{{- range $f := $fields }}
 			{{- if $f.Default }}
-				if _, ok := {{ $mutation }}.{{ $f.MutationGet }}(); !ok {
+				if _, ok := {{ $mutation }}.{{ $f.MutationGet }}(); !ok{{ if $f.Optional }} && !{{ $mutation }}.{{ $f.MutationCleared }}(){{ end }} {
 					{{- if and $runtimeRequired $f.DefaultFunc }}
 						if {{ $.Package }}.{{ $f.DefaultName }} == nil {
 							return fmt.Errorf("{{ $pkg }}: uninitialized {{ $.Package }}.{{ $f.DefaultName }} (forgotten import {{ $pkg }}/runtime?)")

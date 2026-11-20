@@ -43,6 +43,12 @@ func (_c *FileCreate) SetNillableSetID(v *int) *FileCreate {
 	return _c
 }
 
+// ClearSetID clears the value of the "set_id" field.
+func (_c *FileCreate) ClearSetID() *FileCreate {
+	_c.mutation.ClearSetID()
+	return _c
+}
+
 // SetSize sets the "size" field.
 func (_c *FileCreate) SetSize(v int) *FileCreate {
 	_c.mutation.SetSize(v)
@@ -77,6 +83,12 @@ func (_c *FileCreate) SetNillableUser(v *string) *FileCreate {
 	return _c
 }
 
+// ClearUser clears the value of the "user" field.
+func (_c *FileCreate) ClearUser() *FileCreate {
+	_c.mutation.ClearUser()
+	return _c
+}
+
 // SetGroup sets the "group" field.
 func (_c *FileCreate) SetGroup(v string) *FileCreate {
 	_c.mutation.SetGroup(v)
@@ -88,6 +100,12 @@ func (_c *FileCreate) SetNillableGroup(v *string) *FileCreate {
 	if v != nil {
 		_c.SetGroup(*v)
 	}
+	return _c
+}
+
+// ClearGroup clears the value of the "group" field.
+func (_c *FileCreate) ClearGroup() *FileCreate {
+	_c.mutation.ClearGroup()
 	return _c
 }
 
@@ -105,6 +123,12 @@ func (_c *FileCreate) SetNillableOp(v *bool) *FileCreate {
 	return _c
 }
 
+// ClearOp clears the value of the "op" field.
+func (_c *FileCreate) ClearOp() *FileCreate {
+	_c.mutation.ClearOp()
+	return _c
+}
+
 // SetFieldID sets the "field_id" field.
 func (_c *FileCreate) SetFieldID(v int) *FileCreate {
 	_c.mutation.SetFieldID(v)
@@ -119,6 +143,12 @@ func (_c *FileCreate) SetNillableFieldID(v *int) *FileCreate {
 	return _c
 }
 
+// ClearFieldID clears the value of the "field_id" field.
+func (_c *FileCreate) ClearFieldID() *FileCreate {
+	_c.mutation.ClearFieldID()
+	return _c
+}
+
 // SetCreateTime sets the "create_time" field.
 func (_c *FileCreate) SetCreateTime(v time.Time) *FileCreate {
 	_c.mutation.SetCreateTime(v)
@@ -130,6 +160,12 @@ func (_c *FileCreate) SetNillableCreateTime(v *time.Time) *FileCreate {
 	if v != nil {
 		_c.SetCreateTime(*v)
 	}
+	return _c
+}
+
+// ClearCreateTime clears the value of the "create_time" field.
+func (_c *FileCreate) ClearCreateTime() *FileCreate {
+	_c.mutation.ClearCreateTime()
 	return _c
 }
 
@@ -275,6 +311,8 @@ func (_c *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.SetID(); ok {
 		_spec.SetField(file.FieldSetID, field.TypeInt, value)
 		_node.SetID = value
+	} else if _c.mutation.SetIDCleared() {
+		_spec.ClearField(file.FieldSetID, field.TypeInt)
 	}
 	if value, ok := _c.mutation.Size(); ok {
 		_spec.SetField(file.FieldSize, field.TypeInt, value)
@@ -287,22 +325,32 @@ func (_c *FileCreate) createSpec() (*File, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.User(); ok {
 		_spec.SetField(file.FieldUser, field.TypeString, value)
 		_node.User = &value
+	} else if _c.mutation.UserCleared() {
+		_spec.ClearField(file.FieldUser, field.TypeString)
 	}
 	if value, ok := _c.mutation.Group(); ok {
 		_spec.SetField(file.FieldGroup, field.TypeString, value)
 		_node.Group = value
+	} else if _c.mutation.GroupCleared() {
+		_spec.ClearField(file.FieldGroup, field.TypeString)
 	}
 	if value, ok := _c.mutation.GetOp(); ok {
 		_spec.SetField(file.FieldOp, field.TypeBool, value)
 		_node.Op = value
+	} else if _c.mutation.OpCleared() {
+		_spec.ClearField(file.FieldOp, field.TypeBool)
 	}
 	if value, ok := _c.mutation.FieldID(); ok {
 		_spec.SetField(file.FieldFieldID, field.TypeInt, value)
 		_node.FieldID = value
+	} else if _c.mutation.FieldIDCleared() {
+		_spec.ClearField(file.FieldFieldID, field.TypeInt)
 	}
 	if value, ok := _c.mutation.CreateTime(); ok {
 		_spec.SetField(file.FieldCreateTime, field.TypeTime, value)
 		_node.CreateTime = value
+	} else if _c.mutation.CreateTimeCleared() {
+		_spec.ClearField(file.FieldCreateTime, field.TypeTime)
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -40,6 +40,12 @@ func (_c *ItemCreate) SetNillableText(v *string) *ItemCreate {
 	return _c
 }
 
+// ClearText clears the value of the "text" field.
+func (_c *ItemCreate) ClearText() *ItemCreate {
+	_c.mutation.ClearText()
+	return _c
+}
+
 // SetID sets the "id" field.
 func (_c *ItemCreate) SetID(v string) *ItemCreate {
 	_c.mutation.SetID(v)
@@ -146,6 +152,8 @@ func (_c *ItemCreate) createSpec() (*Item, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Text(); ok {
 		_spec.SetField(item.FieldText, field.TypeString, value)
 		_node.Text = value
+	} else if _c.mutation.TextCleared() {
+		_spec.ClearField(item.FieldText, field.TypeString)
 	}
 	return _node, _spec
 }

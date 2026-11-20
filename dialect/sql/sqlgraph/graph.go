@@ -628,6 +628,9 @@ type (
 		Column string
 		Type   field.Type
 		Value  driver.Value // value to be stored.
+		// Cleared indicates the column should be set to NULL
+		// rather than to its (JSON) representation of Value.
+		Cleared bool
 	}
 
 	// EdgeTarget holds the information for the target nodes
@@ -742,6 +745,17 @@ func (u *CreateSpec) SetField(column string, t field.Type, value driver.Value) {
 		Column: column,
 		Type:   t,
 		Value:  value,
+	})
+}
+
+// ClearField appends a new field cleaner (set to NULL) to the creation spec.
+// Unlike omitting a column from the INSERT statement, which falls back to its
+// default value, clearing a field inserts an explicit NULL value to it.
+func (u *CreateSpec) ClearField(column string, t field.Type) {
+	u.Fields = append(u.Fields, &FieldSpec{
+		Column:  column,
+		Type:    t,
+		Cleared: true,
 	})
 }
 
@@ -1885,7 +1899,10 @@ func isExternalEdge(e *EdgeSpec) bool {
 func setTableColumns(fields []*FieldSpec, edges map[Rel][]*EdgeSpec, set func(string, driver.Value)) (err error) {
 	for _, fi := range fields {
 		value := fi.Value
-		if fi.Type == field.TypeJSON {
+		switch {
+		case fi.Cleared:
+			value = nil
+		case fi.Type == field.TypeJSON:
 			buf, err := json.Marshal(value)
 			if err != nil {
 				return fmt.Errorf("marshal value for column %s: %w", fi.Column, err)

@@ -45,6 +45,12 @@ func (_c *ExValueScanCreate) SetBinaryOptional(v *url.URL) *ExValueScanCreate {
 	return _c
 }
 
+// ClearBinaryOptional clears the value of the "binary_optional" field.
+func (_c *ExValueScanCreate) ClearBinaryOptional() *ExValueScanCreate {
+	_c.mutation.ClearBinaryOptional()
+	return _c
+}
+
 // SetText sets the "text" field.
 func (_c *ExValueScanCreate) SetText(v *big.Int) *ExValueScanCreate {
 	_c.mutation.SetText(v)
@@ -54,6 +60,12 @@ func (_c *ExValueScanCreate) SetText(v *big.Int) *ExValueScanCreate {
 // SetTextOptional sets the "text_optional" field.
 func (_c *ExValueScanCreate) SetTextOptional(v *big.Int) *ExValueScanCreate {
 	_c.mutation.SetTextOptional(v)
+	return _c
+}
+
+// ClearTextOptional clears the value of the "text_optional" field.
+func (_c *ExValueScanCreate) ClearTextOptional() *ExValueScanCreate {
+	_c.mutation.ClearTextOptional()
 	return _c
 }
 
@@ -80,6 +92,12 @@ func (_c *ExValueScanCreate) SetNillableCustomOptional(v *string) *ExValueScanCr
 	if v != nil {
 		_c.SetCustomOptional(*v)
 	}
+	return _c
+}
+
+// ClearCustomOptional clears the value of the "custom_optional" field.
+func (_c *ExValueScanCreate) ClearCustomOptional() *ExValueScanCreate {
+	_c.mutation.ClearCustomOptional()
 	return _c
 }
 
@@ -185,6 +203,8 @@ func (_c *ExValueScanCreate) createSpec() (*ExValueScan, *sqlgraph.CreateSpec, e
 		}
 		_spec.SetField(exvaluescan.FieldBinaryOptional, field.TypeString, vv)
 		_node.BinaryOptional = value
+	} else if _c.mutation.BinaryOptionalCleared() {
+		_spec.ClearField(exvaluescan.FieldBinaryOptional, field.TypeString)
 	}
 	if value, ok := _c.mutation.Text(); ok {
 		vv, err := exvaluescan.ValueScanner.Text.Value(value)
@@ -201,6 +221,8 @@ func (_c *ExValueScanCreate) createSpec() (*ExValueScan, *sqlgraph.CreateSpec, e
 		}
 		_spec.SetField(exvaluescan.FieldTextOptional, field.TypeString, vv)
 		_node.TextOptional = value
+	} else if _c.mutation.TextOptionalCleared() {
+		_spec.ClearField(exvaluescan.FieldTextOptional, field.TypeString)
 	}
 	if value, ok := _c.mutation.Base64(); ok {
 		vv, err := exvaluescan.ValueScanner.Base64.Value(value)
@@ -225,6 +247,8 @@ func (_c *ExValueScanCreate) createSpec() (*ExValueScan, *sqlgraph.CreateSpec, e
 		}
 		_spec.SetField(exvaluescan.FieldCustomOptional, field.TypeString, vv)
 		_node.CustomOptional = value
+	} else if _c.mutation.CustomOptionalCleared() {
+		_spec.ClearField(exvaluescan.FieldCustomOptional, field.TypeString)
 	}
 	return _node, _spec, nil
 }

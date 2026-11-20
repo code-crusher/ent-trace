@@ -90,6 +90,12 @@ func (_c *CardCreate) SetNillableName(v *string) *CardCreate {
 	return _c
 }
 
+// ClearName clears the value of the "name" field.
+func (_c *CardCreate) ClearName() *CardCreate {
+	_c.mutation.ClearName()
+	return _c
+}
+
 // SetOwnerID sets the "owner" edge to the User entity by ID.
 func (_c *CardCreate) SetOwnerID(id int) *CardCreate {
 	_c.mutation.SetOwnerID(id)
@@ -243,6 +249,8 @@ func (_c *CardCreate) createSpec() (*Card, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(card.FieldName, field.TypeString, value)
 		_node.Name = value
+	} else if _c.mutation.NameCleared() {
+		_spec.ClearField(card.FieldName, field.TypeString)
 	}
 	if nodes := _c.mutation.OwnerIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

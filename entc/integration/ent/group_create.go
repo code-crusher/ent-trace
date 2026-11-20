@@ -63,6 +63,12 @@ func (_c *GroupCreate) SetNillableType(v *string) *GroupCreate {
 	return _c
 }
 
+// ClearType clears the value of the "type" field.
+func (_c *GroupCreate) ClearType() *GroupCreate {
+	_c.mutation.ClearType()
+	return _c
+}
+
 // SetMaxUsers sets the "max_users" field.
 func (_c *GroupCreate) SetMaxUsers(v int) *GroupCreate {
 	_c.mutation.SetMaxUsers(v)
@@ -74,6 +80,12 @@ func (_c *GroupCreate) SetNillableMaxUsers(v *int) *GroupCreate {
 	if v != nil {
 		_c.SetMaxUsers(*v)
 	}
+	return _c
+}
+
+// ClearMaxUsers clears the value of the "max_users" field.
+func (_c *GroupCreate) ClearMaxUsers() *GroupCreate {
+	_c.mutation.ClearMaxUsers()
 	return _c
 }
 
@@ -178,7 +190,7 @@ func (_c *GroupCreate) defaults() {
 		v := group.DefaultActive
 		_c.mutation.SetActive(v)
 	}
-	if _, ok := _c.mutation.MaxUsers(); !ok {
+	if _, ok := _c.mutation.MaxUsers(); !ok && !_c.mutation.MaxUsersCleared() {
 		v := group.DefaultMaxUsers
 		_c.mutation.SetMaxUsers(v)
 	}
@@ -251,10 +263,14 @@ func (_c *GroupCreate) createSpec() (*Group, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.GetType(); ok {
 		_spec.SetField(group.FieldType, field.TypeString, value)
 		_node.Type = &value
+	} else if _c.mutation.TypeCleared() {
+		_spec.ClearField(group.FieldType, field.TypeString)
 	}
 	if value, ok := _c.mutation.MaxUsers(); ok {
 		_spec.SetField(group.FieldMaxUsers, field.TypeInt, value)
 		_node.MaxUsers = value
+	} else if _c.mutation.MaxUsersCleared() {
+		_spec.ClearField(group.FieldMaxUsers, field.TypeInt)
 	}
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(group.FieldName, field.TypeString, value)

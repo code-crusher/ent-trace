@@ -75,6 +75,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalInt(v *int) *FieldTypeCreate {
 	return _c
 }
 
+// ClearOptionalInt clears the value of the "optional_int" field.
+func (_c *FieldTypeCreate) ClearOptionalInt() *FieldTypeCreate {
+	_c.mutation.ClearOptionalInt()
+	return _c
+}
+
 // SetOptionalInt8 sets the "optional_int8" field.
 func (_c *FieldTypeCreate) SetOptionalInt8(v int8) *FieldTypeCreate {
 	_c.mutation.SetOptionalInt8(v)
@@ -86,6 +92,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalInt8(v *int8) *FieldTypeCreate {
 	if v != nil {
 		_c.SetOptionalInt8(*v)
 	}
+	return _c
+}
+
+// ClearOptionalInt8 clears the value of the "optional_int8" field.
+func (_c *FieldTypeCreate) ClearOptionalInt8() *FieldTypeCreate {
+	_c.mutation.ClearOptionalInt8()
 	return _c
 }
 
@@ -103,6 +115,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalInt16(v *int16) *FieldTypeCreate {
 	return _c
 }
 
+// ClearOptionalInt16 clears the value of the "optional_int16" field.
+func (_c *FieldTypeCreate) ClearOptionalInt16() *FieldTypeCreate {
+	_c.mutation.ClearOptionalInt16()
+	return _c
+}
+
 // SetOptionalInt32 sets the "optional_int32" field.
 func (_c *FieldTypeCreate) SetOptionalInt32(v int32) *FieldTypeCreate {
 	_c.mutation.SetOptionalInt32(v)
@@ -114,6 +132,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalInt32(v *int32) *FieldTypeCreate {
 	if v != nil {
 		_c.SetOptionalInt32(*v)
 	}
+	return _c
+}
+
+// ClearOptionalInt32 clears the value of the "optional_int32" field.
+func (_c *FieldTypeCreate) ClearOptionalInt32() *FieldTypeCreate {
+	_c.mutation.ClearOptionalInt32()
 	return _c
 }
 
@@ -131,6 +155,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalInt64(v *int64) *FieldTypeCreate {
 	return _c
 }
 
+// ClearOptionalInt64 clears the value of the "optional_int64" field.
+func (_c *FieldTypeCreate) ClearOptionalInt64() *FieldTypeCreate {
+	_c.mutation.ClearOptionalInt64()
+	return _c
+}
+
 // SetNillableInt sets the "nillable_int" field.
 func (_c *FieldTypeCreate) SetNillableInt(v int) *FieldTypeCreate {
 	_c.mutation.SetNillableInt(v)
@@ -142,6 +172,12 @@ func (_c *FieldTypeCreate) SetNillableNillableInt(v *int) *FieldTypeCreate {
 	if v != nil {
 		_c.SetNillableInt(*v)
 	}
+	return _c
+}
+
+// ClearNillableInt clears the value of the "nillable_int" field.
+func (_c *FieldTypeCreate) ClearNillableInt() *FieldTypeCreate {
+	_c.mutation.ClearNillableInt()
 	return _c
 }
 
@@ -159,6 +195,12 @@ func (_c *FieldTypeCreate) SetNillableNillableInt8(v *int8) *FieldTypeCreate {
 	return _c
 }
 
+// ClearNillableInt8 clears the value of the "nillable_int8" field.
+func (_c *FieldTypeCreate) ClearNillableInt8() *FieldTypeCreate {
+	_c.mutation.ClearNillableInt8()
+	return _c
+}
+
 // SetNillableInt16 sets the "nillable_int16" field.
 func (_c *FieldTypeCreate) SetNillableInt16(v int16) *FieldTypeCreate {
 	_c.mutation.SetNillableInt16(v)
@@ -170,6 +212,12 @@ func (_c *FieldTypeCreate) SetNillableNillableInt16(v *int16) *FieldTypeCreate {
 	if v != nil {
 		_c.SetNillableInt16(*v)
 	}
+	return _c
+}
+
+// ClearNillableInt16 clears the value of the "nillable_int16" field.
+func (_c *FieldTypeCreate) ClearNillableInt16() *FieldTypeCreate {
+	_c.mutation.ClearNillableInt16()
 	return _c
 }
 
@@ -187,6 +235,12 @@ func (_c *FieldTypeCreate) SetNillableNillableInt32(v *int32) *FieldTypeCreate {
 	return _c
 }
 
+// ClearNillableInt32 clears the value of the "nillable_int32" field.
+func (_c *FieldTypeCreate) ClearNillableInt32() *FieldTypeCreate {
+	_c.mutation.ClearNillableInt32()
+	return _c
+}
+
 // SetNillableInt64 sets the "nillable_int64" field.
 func (_c *FieldTypeCreate) SetNillableInt64(v int64) *FieldTypeCreate {
 	_c.mutation.SetNillableInt64(v)
@@ -198,6 +252,12 @@ func (_c *FieldTypeCreate) SetNillableNillableInt64(v *int64) *FieldTypeCreate {
 	if v != nil {
 		_c.SetNillableInt64(*v)
 	}
+	return _c
+}
+
+// ClearNillableInt64 clears the value of the "nillable_int64" field.
+func (_c *FieldTypeCreate) ClearNillableInt64() *FieldTypeCreate {
+	_c.mutation.ClearNillableInt64()
 	return _c
 }
 
@@ -215,6 +275,12 @@ func (_c *FieldTypeCreate) SetNillableValidateOptionalInt32(v *int32) *FieldType
 	return _c
 }
 
+// ClearValidateOptionalInt32 clears the value of the "validate_optional_int32" field.
+func (_c *FieldTypeCreate) ClearValidateOptionalInt32() *FieldTypeCreate {
+	_c.mutation.ClearValidateOptionalInt32()
+	return _c
+}
+
 // SetOptionalUint sets the "optional_uint" field.
 func (_c *FieldTypeCreate) SetOptionalUint(v uint) *FieldTypeCreate {
 	_c.mutation.SetOptionalUint(v)
@@ -226,6 +292,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalUint(v *uint) *FieldTypeCreate {
 	if v != nil {
 		_c.SetOptionalUint(*v)
 	}
+	return _c
+}
+
+// ClearOptionalUint clears the value of the "optional_uint" field.
+func (_c *FieldTypeCreate) ClearOptionalUint() *FieldTypeCreate {
+	_c.mutation.ClearOptionalUint()
 	return _c
 }
 
@@ -243,6 +315,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalUint8(v *uint8) *FieldTypeCreate {
 	return _c
 }
 
+// ClearOptionalUint8 clears the value of the "optional_uint8" field.
+func (_c *FieldTypeCreate) ClearOptionalUint8() *FieldTypeCreate {
+	_c.mutation.ClearOptionalUint8()
+	return _c
+}
+
 // SetOptionalUint16 sets the "optional_uint16" field.
 func (_c *FieldTypeCreate) SetOptionalUint16(v uint16) *FieldTypeCreate {
 	_c.mutation.SetOptionalUint16(v)
@@ -254,6 +332,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalUint16(v *uint16) *FieldTypeCreate
 	if v != nil {
 		_c.SetOptionalUint16(*v)
 	}
+	return _c
+}
+
+// ClearOptionalUint16 clears the value of the "optional_uint16" field.
+func (_c *FieldTypeCreate) ClearOptionalUint16() *FieldTypeCreate {
+	_c.mutation.ClearOptionalUint16()
 	return _c
 }
 
@@ -271,6 +355,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalUint32(v *uint32) *FieldTypeCreate
 	return _c
 }
 
+// ClearOptionalUint32 clears the value of the "optional_uint32" field.
+func (_c *FieldTypeCreate) ClearOptionalUint32() *FieldTypeCreate {
+	_c.mutation.ClearOptionalUint32()
+	return _c
+}
+
 // SetOptionalUint64 sets the "optional_uint64" field.
 func (_c *FieldTypeCreate) SetOptionalUint64(v uint64) *FieldTypeCreate {
 	_c.mutation.SetOptionalUint64(v)
@@ -282,6 +372,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalUint64(v *uint64) *FieldTypeCreate
 	if v != nil {
 		_c.SetOptionalUint64(*v)
 	}
+	return _c
+}
+
+// ClearOptionalUint64 clears the value of the "optional_uint64" field.
+func (_c *FieldTypeCreate) ClearOptionalUint64() *FieldTypeCreate {
+	_c.mutation.ClearOptionalUint64()
 	return _c
 }
 
@@ -299,6 +395,12 @@ func (_c *FieldTypeCreate) SetNillableState(v *fieldtype.State) *FieldTypeCreate
 	return _c
 }
 
+// ClearState clears the value of the "state" field.
+func (_c *FieldTypeCreate) ClearState() *FieldTypeCreate {
+	_c.mutation.ClearState()
+	return _c
+}
+
 // SetOptionalFloat sets the "optional_float" field.
 func (_c *FieldTypeCreate) SetOptionalFloat(v float64) *FieldTypeCreate {
 	_c.mutation.SetOptionalFloat(v)
@@ -310,6 +412,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalFloat(v *float64) *FieldTypeCreate
 	if v != nil {
 		_c.SetOptionalFloat(*v)
 	}
+	return _c
+}
+
+// ClearOptionalFloat clears the value of the "optional_float" field.
+func (_c *FieldTypeCreate) ClearOptionalFloat() *FieldTypeCreate {
+	_c.mutation.ClearOptionalFloat()
 	return _c
 }
 
@@ -327,6 +435,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalFloat32(v *float32) *FieldTypeCrea
 	return _c
 }
 
+// ClearOptionalFloat32 clears the value of the "optional_float32" field.
+func (_c *FieldTypeCreate) ClearOptionalFloat32() *FieldTypeCreate {
+	_c.mutation.ClearOptionalFloat32()
+	return _c
+}
+
 // SetText sets the "text" field.
 func (_c *FieldTypeCreate) SetText(v string) *FieldTypeCreate {
 	_c.mutation.SetText(v)
@@ -338,6 +452,12 @@ func (_c *FieldTypeCreate) SetNillableText(v *string) *FieldTypeCreate {
 	if v != nil {
 		_c.SetText(*v)
 	}
+	return _c
+}
+
+// ClearText clears the value of the "text" field.
+func (_c *FieldTypeCreate) ClearText() *FieldTypeCreate {
+	_c.mutation.ClearText()
 	return _c
 }
 
@@ -355,6 +475,12 @@ func (_c *FieldTypeCreate) SetNillableDatetime(v *time.Time) *FieldTypeCreate {
 	return _c
 }
 
+// ClearDatetime clears the value of the "datetime" field.
+func (_c *FieldTypeCreate) ClearDatetime() *FieldTypeCreate {
+	_c.mutation.ClearDatetime()
+	return _c
+}
+
 // SetDecimal sets the "decimal" field.
 func (_c *FieldTypeCreate) SetDecimal(v float64) *FieldTypeCreate {
 	_c.mutation.SetDecimal(v)
@@ -369,15 +495,33 @@ func (_c *FieldTypeCreate) SetNillableDecimal(v *float64) *FieldTypeCreate {
 	return _c
 }
 
+// ClearDecimal clears the value of the "decimal" field.
+func (_c *FieldTypeCreate) ClearDecimal() *FieldTypeCreate {
+	_c.mutation.ClearDecimal()
+	return _c
+}
+
 // SetLinkOther sets the "link_other" field.
 func (_c *FieldTypeCreate) SetLinkOther(v *schema.Link) *FieldTypeCreate {
 	_c.mutation.SetLinkOther(v)
 	return _c
 }
 
+// ClearLinkOther clears the value of the "link_other" field.
+func (_c *FieldTypeCreate) ClearLinkOther() *FieldTypeCreate {
+	_c.mutation.ClearLinkOther()
+	return _c
+}
+
 // SetLinkOtherFunc sets the "link_other_func" field.
 func (_c *FieldTypeCreate) SetLinkOtherFunc(v *schema.Link) *FieldTypeCreate {
 	_c.mutation.SetLinkOtherFunc(v)
+	return _c
+}
+
+// ClearLinkOtherFunc clears the value of the "link_other_func" field.
+func (_c *FieldTypeCreate) ClearLinkOtherFunc() *FieldTypeCreate {
+	_c.mutation.ClearLinkOtherFunc()
 	return _c
 }
 
@@ -395,9 +539,21 @@ func (_c *FieldTypeCreate) SetNillableMAC(v *schema.MAC) *FieldTypeCreate {
 	return _c
 }
 
+// ClearMAC clears the value of the "mac" field.
+func (_c *FieldTypeCreate) ClearMAC() *FieldTypeCreate {
+	_c.mutation.ClearMAC()
+	return _c
+}
+
 // SetStringArray sets the "string_array" field.
 func (_c *FieldTypeCreate) SetStringArray(v schema.Strings) *FieldTypeCreate {
 	_c.mutation.SetStringArray(v)
+	return _c
+}
+
+// ClearStringArray clears the value of the "string_array" field.
+func (_c *FieldTypeCreate) ClearStringArray() *FieldTypeCreate {
+	_c.mutation.ClearStringArray()
 	return _c
 }
 
@@ -415,6 +571,12 @@ func (_c *FieldTypeCreate) SetNillablePassword(v *string) *FieldTypeCreate {
 	return _c
 }
 
+// ClearPassword clears the value of the "password" field.
+func (_c *FieldTypeCreate) ClearPassword() *FieldTypeCreate {
+	_c.mutation.ClearPassword()
+	return _c
+}
+
 // SetStringScanner sets the "string_scanner" field.
 func (_c *FieldTypeCreate) SetStringScanner(v schema.StringScanner) *FieldTypeCreate {
 	_c.mutation.SetStringScanner(v)
@@ -429,6 +591,12 @@ func (_c *FieldTypeCreate) SetNillableStringScanner(v *schema.StringScanner) *Fi
 	return _c
 }
 
+// ClearStringScanner clears the value of the "string_scanner" field.
+func (_c *FieldTypeCreate) ClearStringScanner() *FieldTypeCreate {
+	_c.mutation.ClearStringScanner()
+	return _c
+}
+
 // SetDuration sets the "duration" field.
 func (_c *FieldTypeCreate) SetDuration(v time.Duration) *FieldTypeCreate {
 	_c.mutation.SetDuration(v)
@@ -440,6 +608,12 @@ func (_c *FieldTypeCreate) SetNillableDuration(v *time.Duration) *FieldTypeCreat
 	if v != nil {
 		_c.SetDuration(*v)
 	}
+	return _c
+}
+
+// ClearDuration clears the value of the "duration" field.
+func (_c *FieldTypeCreate) ClearDuration() *FieldTypeCreate {
+	_c.mutation.ClearDuration()
 	return _c
 }
 
@@ -471,6 +645,12 @@ func (_c *FieldTypeCreate) SetNillableNdir(v *http.Dir) *FieldTypeCreate {
 	return _c
 }
 
+// ClearNdir clears the value of the "ndir" field.
+func (_c *FieldTypeCreate) ClearNdir() *FieldTypeCreate {
+	_c.mutation.ClearNdir()
+	return _c
+}
+
 // SetStr sets the "str" field.
 func (_c *FieldTypeCreate) SetStr(v sql.NullString) *FieldTypeCreate {
 	_c.mutation.SetStr(v)
@@ -485,9 +665,21 @@ func (_c *FieldTypeCreate) SetNillableStr(v *sql.NullString) *FieldTypeCreate {
 	return _c
 }
 
+// ClearStr clears the value of the "str" field.
+func (_c *FieldTypeCreate) ClearStr() *FieldTypeCreate {
+	_c.mutation.ClearStr()
+	return _c
+}
+
 // SetNullStr sets the "null_str" field.
 func (_c *FieldTypeCreate) SetNullStr(v *sql.NullString) *FieldTypeCreate {
 	_c.mutation.SetNullStr(v)
+	return _c
+}
+
+// ClearNullStr clears the value of the "null_str" field.
+func (_c *FieldTypeCreate) ClearNullStr() *FieldTypeCreate {
+	_c.mutation.ClearNullStr()
 	return _c
 }
 
@@ -505,9 +697,21 @@ func (_c *FieldTypeCreate) SetNillableLink(v *schema.Link) *FieldTypeCreate {
 	return _c
 }
 
+// ClearLink clears the value of the "link" field.
+func (_c *FieldTypeCreate) ClearLink() *FieldTypeCreate {
+	_c.mutation.ClearLink()
+	return _c
+}
+
 // SetNullLink sets the "null_link" field.
 func (_c *FieldTypeCreate) SetNullLink(v *schema.Link) *FieldTypeCreate {
 	_c.mutation.SetNullLink(v)
+	return _c
+}
+
+// ClearNullLink clears the value of the "null_link" field.
+func (_c *FieldTypeCreate) ClearNullLink() *FieldTypeCreate {
+	_c.mutation.ClearNullLink()
 	return _c
 }
 
@@ -525,6 +729,12 @@ func (_c *FieldTypeCreate) SetNillableActive(v *schema.Status) *FieldTypeCreate 
 	return _c
 }
 
+// ClearActive clears the value of the "active" field.
+func (_c *FieldTypeCreate) ClearActive() *FieldTypeCreate {
+	_c.mutation.ClearActive()
+	return _c
+}
+
 // SetNullActive sets the "null_active" field.
 func (_c *FieldTypeCreate) SetNullActive(v schema.Status) *FieldTypeCreate {
 	_c.mutation.SetNullActive(v)
@@ -539,9 +749,21 @@ func (_c *FieldTypeCreate) SetNillableNullActive(v *schema.Status) *FieldTypeCre
 	return _c
 }
 
+// ClearNullActive clears the value of the "null_active" field.
+func (_c *FieldTypeCreate) ClearNullActive() *FieldTypeCreate {
+	_c.mutation.ClearNullActive()
+	return _c
+}
+
 // SetDeleted sets the "deleted" field.
 func (_c *FieldTypeCreate) SetDeleted(v *sql.NullBool) *FieldTypeCreate {
 	_c.mutation.SetDeleted(v)
+	return _c
+}
+
+// ClearDeleted clears the value of the "deleted" field.
+func (_c *FieldTypeCreate) ClearDeleted() *FieldTypeCreate {
+	_c.mutation.ClearDeleted()
 	return _c
 }
 
@@ -551,9 +773,21 @@ func (_c *FieldTypeCreate) SetDeletedAt(v *sql.NullTime) *FieldTypeCreate {
 	return _c
 }
 
+// ClearDeletedAt clears the value of the "deleted_at" field.
+func (_c *FieldTypeCreate) ClearDeletedAt() *FieldTypeCreate {
+	_c.mutation.ClearDeletedAt()
+	return _c
+}
+
 // SetRawData sets the "raw_data" field.
 func (_c *FieldTypeCreate) SetRawData(v []byte) *FieldTypeCreate {
 	_c.mutation.SetRawData(v)
+	return _c
+}
+
+// ClearRawData clears the value of the "raw_data" field.
+func (_c *FieldTypeCreate) ClearRawData() *FieldTypeCreate {
+	_c.mutation.ClearRawData()
 	return _c
 }
 
@@ -563,15 +797,33 @@ func (_c *FieldTypeCreate) SetSensitive(v []byte) *FieldTypeCreate {
 	return _c
 }
 
+// ClearSensitive clears the value of the "sensitive" field.
+func (_c *FieldTypeCreate) ClearSensitive() *FieldTypeCreate {
+	_c.mutation.ClearSensitive()
+	return _c
+}
+
 // SetIP sets the "ip" field.
 func (_c *FieldTypeCreate) SetIP(v net.IP) *FieldTypeCreate {
 	_c.mutation.SetIP(v)
 	return _c
 }
 
+// ClearIP clears the value of the "ip" field.
+func (_c *FieldTypeCreate) ClearIP() *FieldTypeCreate {
+	_c.mutation.ClearIP()
+	return _c
+}
+
 // SetNullInt64 sets the "null_int64" field.
 func (_c *FieldTypeCreate) SetNullInt64(v *sql.NullInt64) *FieldTypeCreate {
 	_c.mutation.SetNullInt64(v)
+	return _c
+}
+
+// ClearNullInt64 clears the value of the "null_int64" field.
+func (_c *FieldTypeCreate) ClearNullInt64() *FieldTypeCreate {
+	_c.mutation.ClearNullInt64()
 	return _c
 }
 
@@ -589,6 +841,12 @@ func (_c *FieldTypeCreate) SetNillableSchemaInt(v *schema.Int) *FieldTypeCreate 
 	return _c
 }
 
+// ClearSchemaInt clears the value of the "schema_int" field.
+func (_c *FieldTypeCreate) ClearSchemaInt() *FieldTypeCreate {
+	_c.mutation.ClearSchemaInt()
+	return _c
+}
+
 // SetSchemaInt8 sets the "schema_int8" field.
 func (_c *FieldTypeCreate) SetSchemaInt8(v schema.Int8) *FieldTypeCreate {
 	_c.mutation.SetSchemaInt8(v)
@@ -600,6 +858,12 @@ func (_c *FieldTypeCreate) SetNillableSchemaInt8(v *schema.Int8) *FieldTypeCreat
 	if v != nil {
 		_c.SetSchemaInt8(*v)
 	}
+	return _c
+}
+
+// ClearSchemaInt8 clears the value of the "schema_int8" field.
+func (_c *FieldTypeCreate) ClearSchemaInt8() *FieldTypeCreate {
+	_c.mutation.ClearSchemaInt8()
 	return _c
 }
 
@@ -617,6 +881,12 @@ func (_c *FieldTypeCreate) SetNillableSchemaInt64(v *schema.Int64) *FieldTypeCre
 	return _c
 }
 
+// ClearSchemaInt64 clears the value of the "schema_int64" field.
+func (_c *FieldTypeCreate) ClearSchemaInt64() *FieldTypeCreate {
+	_c.mutation.ClearSchemaInt64()
+	return _c
+}
+
 // SetSchemaFloat sets the "schema_float" field.
 func (_c *FieldTypeCreate) SetSchemaFloat(v schema.Float64) *FieldTypeCreate {
 	_c.mutation.SetSchemaFloat(v)
@@ -628,6 +898,12 @@ func (_c *FieldTypeCreate) SetNillableSchemaFloat(v *schema.Float64) *FieldTypeC
 	if v != nil {
 		_c.SetSchemaFloat(*v)
 	}
+	return _c
+}
+
+// ClearSchemaFloat clears the value of the "schema_float" field.
+func (_c *FieldTypeCreate) ClearSchemaFloat() *FieldTypeCreate {
+	_c.mutation.ClearSchemaFloat()
 	return _c
 }
 
@@ -645,9 +921,21 @@ func (_c *FieldTypeCreate) SetNillableSchemaFloat32(v *schema.Float32) *FieldTyp
 	return _c
 }
 
+// ClearSchemaFloat32 clears the value of the "schema_float32" field.
+func (_c *FieldTypeCreate) ClearSchemaFloat32() *FieldTypeCreate {
+	_c.mutation.ClearSchemaFloat32()
+	return _c
+}
+
 // SetNullFloat sets the "null_float" field.
 func (_c *FieldTypeCreate) SetNullFloat(v *sql.NullFloat64) *FieldTypeCreate {
 	_c.mutation.SetNullFloat(v)
+	return _c
+}
+
+// ClearNullFloat clears the value of the "null_float" field.
+func (_c *FieldTypeCreate) ClearNullFloat() *FieldTypeCreate {
+	_c.mutation.ClearNullFloat()
 	return _c
 }
 
@@ -679,6 +967,12 @@ func (_c *FieldTypeCreate) SetNillablePriority(v *role.Priority) *FieldTypeCreat
 	return _c
 }
 
+// ClearPriority clears the value of the "priority" field.
+func (_c *FieldTypeCreate) ClearPriority() *FieldTypeCreate {
+	_c.mutation.ClearPriority()
+	return _c
+}
+
 // SetOptionalUUID sets the "optional_uuid" field.
 func (_c *FieldTypeCreate) SetOptionalUUID(v uuid.UUID) *FieldTypeCreate {
 	_c.mutation.SetOptionalUUID(v)
@@ -690,6 +984,12 @@ func (_c *FieldTypeCreate) SetNillableOptionalUUID(v *uuid.UUID) *FieldTypeCreat
 	if v != nil {
 		_c.SetOptionalUUID(*v)
 	}
+	return _c
+}
+
+// ClearOptionalUUID clears the value of the "optional_uuid" field.
+func (_c *FieldTypeCreate) ClearOptionalUUID() *FieldTypeCreate {
+	_c.mutation.ClearOptionalUUID()
 	return _c
 }
 
@@ -707,9 +1007,21 @@ func (_c *FieldTypeCreate) SetNillableNillableUUID(v *uuid.UUID) *FieldTypeCreat
 	return _c
 }
 
+// ClearNillableUUID clears the value of the "nillable_uuid" field.
+func (_c *FieldTypeCreate) ClearNillableUUID() *FieldTypeCreate {
+	_c.mutation.ClearNillableUUID()
+	return _c
+}
+
 // SetStrings sets the "strings" field.
 func (_c *FieldTypeCreate) SetStrings(v []string) *FieldTypeCreate {
 	_c.mutation.SetStrings(v)
+	return _c
+}
+
+// ClearStrings clears the value of the "strings" field.
+func (_c *FieldTypeCreate) ClearStrings() *FieldTypeCreate {
+	_c.mutation.ClearStrings()
 	return _c
 }
 
@@ -730,6 +1042,12 @@ func (_c *FieldTypeCreate) SetNillablePair(v *schema.Pair) *FieldTypeCreate {
 // SetNilPair sets the "nil_pair" field.
 func (_c *FieldTypeCreate) SetNilPair(v *schema.Pair) *FieldTypeCreate {
 	_c.mutation.SetNilPair(v)
+	return _c
+}
+
+// ClearNilPair clears the value of the "nil_pair" field.
+func (_c *FieldTypeCreate) ClearNilPair() *FieldTypeCreate {
+	_c.mutation.ClearNilPair()
 	return _c
 }
 
@@ -775,6 +1093,12 @@ func (_c *FieldTypeCreate) SetNillableBigInt(v *schema.BigInt) *FieldTypeCreate 
 	return _c
 }
 
+// ClearBigInt clears the value of the "big_int" field.
+func (_c *FieldTypeCreate) ClearBigInt() *FieldTypeCreate {
+	_c.mutation.ClearBigInt()
+	return _c
+}
+
 // SetPasswordOther sets the "password_other" field.
 func (_c *FieldTypeCreate) SetPasswordOther(v schema.Password) *FieldTypeCreate {
 	_c.mutation.SetPasswordOther(v)
@@ -786,6 +1110,12 @@ func (_c *FieldTypeCreate) SetNillablePasswordOther(v *schema.Password) *FieldTy
 	if v != nil {
 		_c.SetPasswordOther(*v)
 	}
+	return _c
+}
+
+// ClearPasswordOther clears the value of the "password_other" field.
+func (_c *FieldTypeCreate) ClearPasswordOther() *FieldTypeCreate {
+	_c.mutation.ClearPasswordOther()
 	return _c
 }
 
@@ -824,11 +1154,11 @@ func (_c *FieldTypeCreate) ExecX(ctx context.Context) {
 
 // defaults sets the default values of the builder before save.
 func (_c *FieldTypeCreate) defaults() {
-	if _, ok := _c.mutation.LinkOther(); !ok {
+	if _, ok := _c.mutation.LinkOther(); !ok && !_c.mutation.LinkOtherCleared() {
 		v := fieldtype.DefaultLinkOther
 		_c.mutation.SetLinkOther(v)
 	}
-	if _, ok := _c.mutation.LinkOtherFunc(); !ok {
+	if _, ok := _c.mutation.LinkOtherFunc(); !ok && !_c.mutation.LinkOtherFuncCleared() {
 		v := fieldtype.DefaultLinkOtherFunc()
 		_c.mutation.SetLinkOtherFunc(v)
 	}
@@ -836,19 +1166,19 @@ func (_c *FieldTypeCreate) defaults() {
 		v := fieldtype.DefaultDir()
 		_c.mutation.SetDir(v)
 	}
-	if _, ok := _c.mutation.Str(); !ok {
+	if _, ok := _c.mutation.Str(); !ok && !_c.mutation.StrCleared() {
 		v := fieldtype.DefaultStr()
 		_c.mutation.SetStr(v)
 	}
-	if _, ok := _c.mutation.NullStr(); !ok {
+	if _, ok := _c.mutation.NullStr(); !ok && !_c.mutation.NullStrCleared() {
 		v := fieldtype.DefaultNullStr()
 		_c.mutation.SetNullStr(v)
 	}
-	if _, ok := _c.mutation.DeletedAt(); !ok {
+	if _, ok := _c.mutation.DeletedAt(); !ok && !_c.mutation.DeletedAtCleared() {
 		v := fieldtype.DefaultDeletedAt()
 		_c.mutation.SetDeletedAt(v)
 	}
-	if _, ok := _c.mutation.IP(); !ok {
+	if _, ok := _c.mutation.IP(); !ok && !_c.mutation.IPCleared() {
 		v := fieldtype.DefaultIP()
 		_c.mutation.SetIP(v)
 	}
@@ -997,118 +1327,176 @@ func (_c *FieldTypeCreate) createSpec() (*FieldType, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.OptionalInt(); ok {
 		_spec.SetField(fieldtype.FieldOptionalInt, field.TypeInt, value)
 		_node.OptionalInt = value
+	} else if _c.mutation.OptionalIntCleared() {
+		_spec.ClearField(fieldtype.FieldOptionalInt, field.TypeInt)
 	}
 	if value, ok := _c.mutation.OptionalInt8(); ok {
 		_spec.SetField(fieldtype.FieldOptionalInt8, field.TypeInt8, value)
 		_node.OptionalInt8 = value
+	} else if _c.mutation.OptionalInt8Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalInt8, field.TypeInt8)
 	}
 	if value, ok := _c.mutation.OptionalInt16(); ok {
 		_spec.SetField(fieldtype.FieldOptionalInt16, field.TypeInt16, value)
 		_node.OptionalInt16 = value
+	} else if _c.mutation.OptionalInt16Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalInt16, field.TypeInt16)
 	}
 	if value, ok := _c.mutation.OptionalInt32(); ok {
 		_spec.SetField(fieldtype.FieldOptionalInt32, field.TypeInt32, value)
 		_node.OptionalInt32 = value
+	} else if _c.mutation.OptionalInt32Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalInt32, field.TypeInt32)
 	}
 	if value, ok := _c.mutation.OptionalInt64(); ok {
 		_spec.SetField(fieldtype.FieldOptionalInt64, field.TypeInt64, value)
 		_node.OptionalInt64 = value
+	} else if _c.mutation.OptionalInt64Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalInt64, field.TypeInt64)
 	}
 	if value, ok := _c.mutation.NillableInt(); ok {
 		_spec.SetField(fieldtype.FieldNillableInt, field.TypeInt, value)
 		_node.NillableInt = &value
+	} else if _c.mutation.NillableIntCleared() {
+		_spec.ClearField(fieldtype.FieldNillableInt, field.TypeInt)
 	}
 	if value, ok := _c.mutation.NillableInt8(); ok {
 		_spec.SetField(fieldtype.FieldNillableInt8, field.TypeInt8, value)
 		_node.NillableInt8 = &value
+	} else if _c.mutation.NillableInt8Cleared() {
+		_spec.ClearField(fieldtype.FieldNillableInt8, field.TypeInt8)
 	}
 	if value, ok := _c.mutation.NillableInt16(); ok {
 		_spec.SetField(fieldtype.FieldNillableInt16, field.TypeInt16, value)
 		_node.NillableInt16 = &value
+	} else if _c.mutation.NillableInt16Cleared() {
+		_spec.ClearField(fieldtype.FieldNillableInt16, field.TypeInt16)
 	}
 	if value, ok := _c.mutation.NillableInt32(); ok {
 		_spec.SetField(fieldtype.FieldNillableInt32, field.TypeInt32, value)
 		_node.NillableInt32 = &value
+	} else if _c.mutation.NillableInt32Cleared() {
+		_spec.ClearField(fieldtype.FieldNillableInt32, field.TypeInt32)
 	}
 	if value, ok := _c.mutation.NillableInt64(); ok {
 		_spec.SetField(fieldtype.FieldNillableInt64, field.TypeInt64, value)
 		_node.NillableInt64 = &value
+	} else if _c.mutation.NillableInt64Cleared() {
+		_spec.ClearField(fieldtype.FieldNillableInt64, field.TypeInt64)
 	}
 	if value, ok := _c.mutation.ValidateOptionalInt32(); ok {
 		_spec.SetField(fieldtype.FieldValidateOptionalInt32, field.TypeInt32, value)
 		_node.ValidateOptionalInt32 = value
+	} else if _c.mutation.ValidateOptionalInt32Cleared() {
+		_spec.ClearField(fieldtype.FieldValidateOptionalInt32, field.TypeInt32)
 	}
 	if value, ok := _c.mutation.OptionalUint(); ok {
 		_spec.SetField(fieldtype.FieldOptionalUint, field.TypeUint, value)
 		_node.OptionalUint = value
+	} else if _c.mutation.OptionalUintCleared() {
+		_spec.ClearField(fieldtype.FieldOptionalUint, field.TypeUint)
 	}
 	if value, ok := _c.mutation.OptionalUint8(); ok {
 		_spec.SetField(fieldtype.FieldOptionalUint8, field.TypeUint8, value)
 		_node.OptionalUint8 = value
+	} else if _c.mutation.OptionalUint8Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalUint8, field.TypeUint8)
 	}
 	if value, ok := _c.mutation.OptionalUint16(); ok {
 		_spec.SetField(fieldtype.FieldOptionalUint16, field.TypeUint16, value)
 		_node.OptionalUint16 = value
+	} else if _c.mutation.OptionalUint16Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalUint16, field.TypeUint16)
 	}
 	if value, ok := _c.mutation.OptionalUint32(); ok {
 		_spec.SetField(fieldtype.FieldOptionalUint32, field.TypeUint32, value)
 		_node.OptionalUint32 = value
+	} else if _c.mutation.OptionalUint32Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalUint32, field.TypeUint32)
 	}
 	if value, ok := _c.mutation.OptionalUint64(); ok {
 		_spec.SetField(fieldtype.FieldOptionalUint64, field.TypeUint64, value)
 		_node.OptionalUint64 = value
+	} else if _c.mutation.OptionalUint64Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalUint64, field.TypeUint64)
 	}
 	if value, ok := _c.mutation.State(); ok {
 		_spec.SetField(fieldtype.FieldState, field.TypeEnum, value)
 		_node.State = value
+	} else if _c.mutation.StateCleared() {
+		_spec.ClearField(fieldtype.FieldState, field.TypeEnum)
 	}
 	if value, ok := _c.mutation.OptionalFloat(); ok {
 		_spec.SetField(fieldtype.FieldOptionalFloat, field.TypeFloat64, value)
 		_node.OptionalFloat = value
+	} else if _c.mutation.OptionalFloatCleared() {
+		_spec.ClearField(fieldtype.FieldOptionalFloat, field.TypeFloat64)
 	}
 	if value, ok := _c.mutation.OptionalFloat32(); ok {
 		_spec.SetField(fieldtype.FieldOptionalFloat32, field.TypeFloat32, value)
 		_node.OptionalFloat32 = value
+	} else if _c.mutation.OptionalFloat32Cleared() {
+		_spec.ClearField(fieldtype.FieldOptionalFloat32, field.TypeFloat32)
 	}
 	if value, ok := _c.mutation.Text(); ok {
 		_spec.SetField(fieldtype.FieldText, field.TypeString, value)
 		_node.Text = value
+	} else if _c.mutation.TextCleared() {
+		_spec.ClearField(fieldtype.FieldText, field.TypeString)
 	}
 	if value, ok := _c.mutation.Datetime(); ok {
 		_spec.SetField(fieldtype.FieldDatetime, field.TypeTime, value)
 		_node.Datetime = value
+	} else if _c.mutation.DatetimeCleared() {
+		_spec.ClearField(fieldtype.FieldDatetime, field.TypeTime)
 	}
 	if value, ok := _c.mutation.Decimal(); ok {
 		_spec.SetField(fieldtype.FieldDecimal, field.TypeFloat64, value)
 		_node.Decimal = value
+	} else if _c.mutation.DecimalCleared() {
+		_spec.ClearField(fieldtype.FieldDecimal, field.TypeFloat64)
 	}
 	if value, ok := _c.mutation.LinkOther(); ok {
 		_spec.SetField(fieldtype.FieldLinkOther, field.TypeOther, value)
 		_node.LinkOther = value
+	} else if _c.mutation.LinkOtherCleared() {
+		_spec.ClearField(fieldtype.FieldLinkOther, field.TypeOther)
 	}
 	if value, ok := _c.mutation.LinkOtherFunc(); ok {
 		_spec.SetField(fieldtype.FieldLinkOtherFunc, field.TypeOther, value)
 		_node.LinkOtherFunc = value
+	} else if _c.mutation.LinkOtherFuncCleared() {
+		_spec.ClearField(fieldtype.FieldLinkOtherFunc, field.TypeOther)
 	}
 	if value, ok := _c.mutation.MAC(); ok {
 		_spec.SetField(fieldtype.FieldMAC, field.TypeString, value)
 		_node.MAC = value
+	} else if _c.mutation.MACCleared() {
+		_spec.ClearField(fieldtype.FieldMAC, field.TypeString)
 	}
 	if value, ok := _c.mutation.StringArray(); ok {
 		_spec.SetField(fieldtype.FieldStringArray, field.TypeOther, value)
 		_node.StringArray = value
+	} else if _c.mutation.StringArrayCleared() {
+		_spec.ClearField(fieldtype.FieldStringArray, field.TypeOther)
 	}
 	if value, ok := _c.mutation.Password(); ok {
 		_spec.SetField(fieldtype.FieldPassword, field.TypeString, value)
 		_node.Password = value
+	} else if _c.mutation.PasswordCleared() {
+		_spec.ClearField(fieldtype.FieldPassword, field.TypeString)
 	}
 	if value, ok := _c.mutation.StringScanner(); ok {
 		_spec.SetField(fieldtype.FieldStringScanner, field.TypeString, value)
 		_node.StringScanner = &value
+	} else if _c.mutation.StringScannerCleared() {
+		_spec.ClearField(fieldtype.FieldStringScanner, field.TypeString)
 	}
 	if value, ok := _c.mutation.Duration(); ok {
 		_spec.SetField(fieldtype.FieldDuration, field.TypeInt64, value)
 		_node.Duration = value
+	} else if _c.mutation.DurationCleared() {
+		_spec.ClearField(fieldtype.FieldDuration, field.TypeInt64)
 	}
 	if value, ok := _c.mutation.Dir(); ok {
 		_spec.SetField(fieldtype.FieldDir, field.TypeString, value)
@@ -1117,78 +1505,116 @@ func (_c *FieldTypeCreate) createSpec() (*FieldType, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Ndir(); ok {
 		_spec.SetField(fieldtype.FieldNdir, field.TypeString, value)
 		_node.Ndir = &value
+	} else if _c.mutation.NdirCleared() {
+		_spec.ClearField(fieldtype.FieldNdir, field.TypeString)
 	}
 	if value, ok := _c.mutation.Str(); ok {
 		_spec.SetField(fieldtype.FieldStr, field.TypeString, value)
 		_node.Str = value
+	} else if _c.mutation.StrCleared() {
+		_spec.ClearField(fieldtype.FieldStr, field.TypeString)
 	}
 	if value, ok := _c.mutation.NullStr(); ok {
 		_spec.SetField(fieldtype.FieldNullStr, field.TypeString, value)
 		_node.NullStr = value
+	} else if _c.mutation.NullStrCleared() {
+		_spec.ClearField(fieldtype.FieldNullStr, field.TypeString)
 	}
 	if value, ok := _c.mutation.Link(); ok {
 		_spec.SetField(fieldtype.FieldLink, field.TypeString, value)
 		_node.Link = value
+	} else if _c.mutation.LinkCleared() {
+		_spec.ClearField(fieldtype.FieldLink, field.TypeString)
 	}
 	if value, ok := _c.mutation.NullLink(); ok {
 		_spec.SetField(fieldtype.FieldNullLink, field.TypeString, value)
 		_node.NullLink = value
+	} else if _c.mutation.NullLinkCleared() {
+		_spec.ClearField(fieldtype.FieldNullLink, field.TypeString)
 	}
 	if value, ok := _c.mutation.Active(); ok {
 		_spec.SetField(fieldtype.FieldActive, field.TypeBool, value)
 		_node.Active = value
+	} else if _c.mutation.ActiveCleared() {
+		_spec.ClearField(fieldtype.FieldActive, field.TypeBool)
 	}
 	if value, ok := _c.mutation.NullActive(); ok {
 		_spec.SetField(fieldtype.FieldNullActive, field.TypeBool, value)
 		_node.NullActive = &value
+	} else if _c.mutation.NullActiveCleared() {
+		_spec.ClearField(fieldtype.FieldNullActive, field.TypeBool)
 	}
 	if value, ok := _c.mutation.Deleted(); ok {
 		_spec.SetField(fieldtype.FieldDeleted, field.TypeBool, value)
 		_node.Deleted = value
+	} else if _c.mutation.DeletedCleared() {
+		_spec.ClearField(fieldtype.FieldDeleted, field.TypeBool)
 	}
 	if value, ok := _c.mutation.DeletedAt(); ok {
 		_spec.SetField(fieldtype.FieldDeletedAt, field.TypeTime, value)
 		_node.DeletedAt = value
+	} else if _c.mutation.DeletedAtCleared() {
+		_spec.ClearField(fieldtype.FieldDeletedAt, field.TypeTime)
 	}
 	if value, ok := _c.mutation.RawData(); ok {
 		_spec.SetField(fieldtype.FieldRawData, field.TypeBytes, value)
 		_node.RawData = value
+	} else if _c.mutation.RawDataCleared() {
+		_spec.ClearField(fieldtype.FieldRawData, field.TypeBytes)
 	}
 	if value, ok := _c.mutation.Sensitive(); ok {
 		_spec.SetField(fieldtype.FieldSensitive, field.TypeBytes, value)
 		_node.Sensitive = value
+	} else if _c.mutation.SensitiveCleared() {
+		_spec.ClearField(fieldtype.FieldSensitive, field.TypeBytes)
 	}
 	if value, ok := _c.mutation.IP(); ok {
 		_spec.SetField(fieldtype.FieldIP, field.TypeBytes, value)
 		_node.IP = value
+	} else if _c.mutation.IPCleared() {
+		_spec.ClearField(fieldtype.FieldIP, field.TypeBytes)
 	}
 	if value, ok := _c.mutation.NullInt64(); ok {
 		_spec.SetField(fieldtype.FieldNullInt64, field.TypeInt, value)
 		_node.NullInt64 = value
+	} else if _c.mutation.NullInt64Cleared() {
+		_spec.ClearField(fieldtype.FieldNullInt64, field.TypeInt)
 	}
 	if value, ok := _c.mutation.SchemaInt(); ok {
 		_spec.SetField(fieldtype.FieldSchemaInt, field.TypeInt, value)
 		_node.SchemaInt = value
+	} else if _c.mutation.SchemaIntCleared() {
+		_spec.ClearField(fieldtype.FieldSchemaInt, field.TypeInt)
 	}
 	if value, ok := _c.mutation.SchemaInt8(); ok {
 		_spec.SetField(fieldtype.FieldSchemaInt8, field.TypeInt8, value)
 		_node.SchemaInt8 = value
+	} else if _c.mutation.SchemaInt8Cleared() {
+		_spec.ClearField(fieldtype.FieldSchemaInt8, field.TypeInt8)
 	}
 	if value, ok := _c.mutation.SchemaInt64(); ok {
 		_spec.SetField(fieldtype.FieldSchemaInt64, field.TypeInt64, value)
 		_node.SchemaInt64 = value
+	} else if _c.mutation.SchemaInt64Cleared() {
+		_spec.ClearField(fieldtype.FieldSchemaInt64, field.TypeInt64)
 	}
 	if value, ok := _c.mutation.SchemaFloat(); ok {
 		_spec.SetField(fieldtype.FieldSchemaFloat, field.TypeFloat64, value)
 		_node.SchemaFloat = value
+	} else if _c.mutation.SchemaFloatCleared() {
+		_spec.ClearField(fieldtype.FieldSchemaFloat, field.TypeFloat64)
 	}
 	if value, ok := _c.mutation.SchemaFloat32(); ok {
 		_spec.SetField(fieldtype.FieldSchemaFloat32, field.TypeFloat32, value)
 		_node.SchemaFloat32 = value
+	} else if _c.mutation.SchemaFloat32Cleared() {
+		_spec.ClearField(fieldtype.FieldSchemaFloat32, field.TypeFloat32)
 	}
 	if value, ok := _c.mutation.NullFloat(); ok {
 		_spec.SetField(fieldtype.FieldNullFloat, field.TypeFloat64, value)
 		_node.NullFloat = value
+	} else if _c.mutation.NullFloatCleared() {
+		_spec.ClearField(fieldtype.FieldNullFloat, field.TypeFloat64)
 	}
 	if value, ok := _c.mutation.Role(); ok {
 		_spec.SetField(fieldtype.FieldRole, field.TypeEnum, value)
@@ -1197,18 +1623,26 @@ func (_c *FieldTypeCreate) createSpec() (*FieldType, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Priority(); ok {
 		_spec.SetField(fieldtype.FieldPriority, field.TypeEnum, value)
 		_node.Priority = value
+	} else if _c.mutation.PriorityCleared() {
+		_spec.ClearField(fieldtype.FieldPriority, field.TypeEnum)
 	}
 	if value, ok := _c.mutation.OptionalUUID(); ok {
 		_spec.SetField(fieldtype.FieldOptionalUUID, field.TypeUUID, value)
 		_node.OptionalUUID = value
+	} else if _c.mutation.OptionalUUIDCleared() {
+		_spec.ClearField(fieldtype.FieldOptionalUUID, field.TypeUUID)
 	}
 	if value, ok := _c.mutation.NillableUUID(); ok {
 		_spec.SetField(fieldtype.FieldNillableUUID, field.TypeUUID, value)
 		_node.NillableUUID = &value
+	} else if _c.mutation.NillableUUIDCleared() {
+		_spec.ClearField(fieldtype.FieldNillableUUID, field.TypeUUID)
 	}
 	if value, ok := _c.mutation.Strings(); ok {
 		_spec.SetField(fieldtype.FieldStrings, field.TypeJSON, value)
 		_node.Strings = value
+	} else if _c.mutation.StringsCleared() {
+		_spec.ClearField(fieldtype.FieldStrings, field.TypeJSON)
 	}
 	if value, ok := _c.mutation.Pair(); ok {
 		_spec.SetField(fieldtype.FieldPair, field.TypeBytes, value)
@@ -1217,6 +1651,8 @@ func (_c *FieldTypeCreate) createSpec() (*FieldType, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NilPair(); ok {
 		_spec.SetField(fieldtype.FieldNilPair, field.TypeBytes, value)
 		_node.NilPair = value
+	} else if _c.mutation.NilPairCleared() {
+		_spec.ClearField(fieldtype.FieldNilPair, field.TypeBytes)
 	}
 	if value, ok := _c.mutation.Vstring(); ok {
 		_spec.SetField(fieldtype.FieldVstring, field.TypeString, value)
@@ -1229,10 +1665,14 @@ func (_c *FieldTypeCreate) createSpec() (*FieldType, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.BigInt(); ok {
 		_spec.SetField(fieldtype.FieldBigInt, field.TypeInt, value)
 		_node.BigInt = value
+	} else if _c.mutation.BigIntCleared() {
+		_spec.ClearField(fieldtype.FieldBigInt, field.TypeInt)
 	}
 	if value, ok := _c.mutation.PasswordOther(); ok {
 		_spec.SetField(fieldtype.FieldPasswordOther, field.TypeOther, value)
 		_node.PasswordOther = value
+	} else if _c.mutation.PasswordOtherCleared() {
+		_spec.ClearField(fieldtype.FieldPasswordOther, field.TypeOther)
 	}
 	return _node, _spec
 }

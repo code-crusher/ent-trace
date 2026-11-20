@@ -214,6 +214,11 @@ func ({{ $receiver }} *{{ $builder }}) createSpec() (*{{ $.Name }}, *sqlgraph.Cr
 			{{- end }}
 			_node.{{ $f.StructField }} = {{ if $f.NillableValue }}&{{ end }}value
 		}
+		{{- /* Explicitly set the column to NULL if it was cleared on create (e.g. for OnConflict). */}}
+		{{- if and $f.Optional (not $f.IsEdgeField) }} else if {{ $mutation }}.{{ $f.MutationCleared }}() {
+			_spec.ClearField({{ $.Package }}.{{ $f.Constant }}, field.{{ $f.Type.ConstName }})
+		}
+		{{- end }}
 	{{- end }}
 	{{- range $e := $.EdgesWithID }}
 		if nodes := {{ $mutation }}.{{ $e.StructField }}IDs(); len(nodes) > 0 {

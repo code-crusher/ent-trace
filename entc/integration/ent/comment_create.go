@@ -52,6 +52,12 @@ func (_c *CommentCreate) SetNillableNillableInt(v *int) *CommentCreate {
 	return _c
 }
 
+// ClearNillableInt clears the value of the "nillable_int" field.
+func (_c *CommentCreate) ClearNillableInt() *CommentCreate {
+	_c.mutation.ClearNillableInt()
+	return _c
+}
+
 // SetTable sets the "table" field.
 func (_c *CommentCreate) SetTable(v string) *CommentCreate {
 	_c.mutation.SetTable(v)
@@ -63,6 +69,12 @@ func (_c *CommentCreate) SetNillableTable(v *string) *CommentCreate {
 	if v != nil {
 		_c.SetTable(*v)
 	}
+	return _c
+}
+
+// ClearTable clears the value of the "table" field.
+func (_c *CommentCreate) ClearTable() *CommentCreate {
+	_c.mutation.ClearTable()
 	return _c
 }
 
@@ -80,6 +92,12 @@ func (_c *CommentCreate) SetNillableDir(v *schemadir.Dir) *CommentCreate {
 	return _c
 }
 
+// ClearDir clears the value of the "dir" field.
+func (_c *CommentCreate) ClearDir() *CommentCreate {
+	_c.mutation.ClearDir()
+	return _c
+}
+
 // SetClient sets the "client" field.
 func (_c *CommentCreate) SetClient(v string) *CommentCreate {
 	_c.mutation.SetClient(v)
@@ -91,6 +109,12 @@ func (_c *CommentCreate) SetNillableClient(v *string) *CommentCreate {
 	if v != nil {
 		_c.SetClient(*v)
 	}
+	return _c
+}
+
+// ClearClient clears the value of the "client" field.
+func (_c *CommentCreate) ClearClient() *CommentCreate {
+	_c.mutation.ClearClient()
 	return _c
 }
 
@@ -172,18 +196,26 @@ func (_c *CommentCreate) createSpec() (*Comment, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.NillableInt(); ok {
 		_spec.SetField(comment.FieldNillableInt, field.TypeInt, value)
 		_node.NillableInt = &value
+	} else if _c.mutation.NillableIntCleared() {
+		_spec.ClearField(comment.FieldNillableInt, field.TypeInt)
 	}
 	if value, ok := _c.mutation.Table(); ok {
 		_spec.SetField(comment.FieldTable, field.TypeString, value)
 		_node.Table = value
+	} else if _c.mutation.TableCleared() {
+		_spec.ClearField(comment.FieldTable, field.TypeString)
 	}
 	if value, ok := _c.mutation.Dir(); ok {
 		_spec.SetField(comment.FieldDir, field.TypeJSON, value)
 		_node.Dir = value
+	} else if _c.mutation.DirCleared() {
+		_spec.ClearField(comment.FieldDir, field.TypeJSON)
 	}
 	if value, ok := _c.mutation.GetClient(); ok {
 		_spec.SetField(comment.FieldClient, field.TypeString, value)
 		_node.Client = value
+	} else if _c.mutation.ClientCleared() {
+		_spec.ClearField(comment.FieldClient, field.TypeString)
 	}
 	return _node, _spec
 }

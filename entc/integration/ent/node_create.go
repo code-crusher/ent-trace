@@ -40,6 +40,12 @@ func (_c *NodeCreate) SetNillableValue(v *int) *NodeCreate {
 	return _c
 }
 
+// ClearValue clears the value of the "value" field.
+func (_c *NodeCreate) ClearValue() *NodeCreate {
+	_c.mutation.ClearValue()
+	return _c
+}
+
 // SetUpdatedAt sets the "updated_at" field.
 func (_c *NodeCreate) SetUpdatedAt(v time.Time) *NodeCreate {
 	_c.mutation.SetUpdatedAt(v)
@@ -51,6 +57,12 @@ func (_c *NodeCreate) SetNillableUpdatedAt(v *time.Time) *NodeCreate {
 	if v != nil {
 		_c.SetUpdatedAt(*v)
 	}
+	return _c
+}
+
+// ClearUpdatedAt clears the value of the "updated_at" field.
+func (_c *NodeCreate) ClearUpdatedAt() *NodeCreate {
+	_c.mutation.ClearUpdatedAt()
 	return _c
 }
 
@@ -156,10 +168,14 @@ func (_c *NodeCreate) createSpec() (*Node, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Value(); ok {
 		_spec.SetField(node.FieldValue, field.TypeInt, value)
 		_node.Value = value
+	} else if _c.mutation.ValueCleared() {
+		_spec.ClearField(node.FieldValue, field.TypeInt)
 	}
 	if value, ok := _c.mutation.UpdatedAt(); ok {
 		_spec.SetField(node.FieldUpdatedAt, field.TypeTime, value)
 		_node.UpdatedAt = &value
+	} else if _c.mutation.UpdatedAtCleared() {
+		_spec.ClearField(node.FieldUpdatedAt, field.TypeTime)
 	}
 	if nodes := _c.mutation.PrevIDs(); len(nodes) > 0 {
 		edge := &sqlgraph.EdgeSpec{

@@ -47,6 +47,12 @@ func (_c *TaskCreate) SetPriorities(v map[string]task.Priority) *TaskCreate {
 	return _c
 }
 
+// ClearPriorities clears the value of the "priorities" field.
+func (_c *TaskCreate) ClearPriorities() *TaskCreate {
+	_c.mutation.ClearPriorities()
+	return _c
+}
+
 // SetCreatedAt sets the "created_at" field.
 func (_c *TaskCreate) SetCreatedAt(v time.Time) *TaskCreate {
 	_c.mutation.SetCreatedAt(v)
@@ -75,6 +81,12 @@ func (_c *TaskCreate) SetNillableName(v *string) *TaskCreate {
 	return _c
 }
 
+// ClearName clears the value of the "name" field.
+func (_c *TaskCreate) ClearName() *TaskCreate {
+	_c.mutation.ClearName()
+	return _c
+}
+
 // SetOwner sets the "owner" field.
 func (_c *TaskCreate) SetOwner(v string) *TaskCreate {
 	_c.mutation.SetOwner(v)
@@ -86,6 +98,12 @@ func (_c *TaskCreate) SetNillableOwner(v *string) *TaskCreate {
 	if v != nil {
 		_c.SetOwner(*v)
 	}
+	return _c
+}
+
+// ClearOwner clears the value of the "owner" field.
+func (_c *TaskCreate) ClearOwner() *TaskCreate {
+	_c.mutation.ClearOwner()
 	return _c
 }
 
@@ -103,6 +121,12 @@ func (_c *TaskCreate) SetNillableOrder(v *int) *TaskCreate {
 	return _c
 }
 
+// ClearOrder clears the value of the "order" field.
+func (_c *TaskCreate) ClearOrder() *TaskCreate {
+	_c.mutation.ClearOrder()
+	return _c
+}
+
 // SetOrderOption sets the "order_option" field.
 func (_c *TaskCreate) SetOrderOption(v int) *TaskCreate {
 	_c.mutation.SetOrderOption(v)
@@ -114,6 +138,12 @@ func (_c *TaskCreate) SetNillableOrderOption(v *int) *TaskCreate {
 	if v != nil {
 		_c.SetOrderOption(*v)
 	}
+	return _c
+}
+
+// ClearOrderOption clears the value of the "order_option" field.
+func (_c *TaskCreate) ClearOrderOption() *TaskCreate {
+	_c.mutation.ClearOrderOption()
 	return _c
 }
 
@@ -235,6 +265,8 @@ func (_c *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Priorities(); ok {
 		_spec.SetField(enttask.FieldPriorities, field.TypeJSON, value)
 		_node.Priorities = value
+	} else if _c.mutation.PrioritiesCleared() {
+		_spec.ClearField(enttask.FieldPriorities, field.TypeJSON)
 	}
 	if value, ok := _c.mutation.CreatedAt(); ok {
 		_spec.SetField(enttask.FieldCreatedAt, field.TypeTime, value)
@@ -243,18 +275,26 @@ func (_c *TaskCreate) createSpec() (*Task, *sqlgraph.CreateSpec) {
 	if value, ok := _c.mutation.Name(); ok {
 		_spec.SetField(enttask.FieldName, field.TypeString, value)
 		_node.Name = value
+	} else if _c.mutation.NameCleared() {
+		_spec.ClearField(enttask.FieldName, field.TypeString)
 	}
 	if value, ok := _c.mutation.Owner(); ok {
 		_spec.SetField(enttask.FieldOwner, field.TypeString, value)
 		_node.Owner = value
+	} else if _c.mutation.OwnerCleared() {
+		_spec.ClearField(enttask.FieldOwner, field.TypeString)
 	}
 	if value, ok := _c.mutation.Order(); ok {
 		_spec.SetField(enttask.FieldOrder, field.TypeInt, value)
 		_node.Order = value
+	} else if _c.mutation.OrderCleared() {
+		_spec.ClearField(enttask.FieldOrder, field.TypeInt)
 	}
 	if value, ok := _c.mutation.OrderOption(); ok {
 		_spec.SetField(enttask.FieldOrderOption, field.TypeInt, value)
 		_node.OrderOption = value
+	} else if _c.mutation.OrderOptionCleared() {
+		_spec.ClearField(enttask.FieldOrderOption, field.TypeInt)
 	}
 	if value, ok := _c.mutation.GetOp(); ok {
 		_spec.SetField(enttask.FieldOp, field.TypeString, value)
