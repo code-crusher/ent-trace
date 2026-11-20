@@ -74,7 +74,7 @@ For the purpose of the example, we **disable the automatic field collection**, c
 debug mode in the `Todos` resolver, and restart our GraphQL server:
 
 ```diff title="ent.resolvers.go"
-func (r *queryResolver) Todos(ctx context.Context, after *ent.Cursor, first *int, before *ent.Cursor, last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error) {
+func (r *queryResolver) Todos(ctx context.Context, after *entgql.Cursor[int], first *int, before *entgql.Cursor[int], last *int, orderBy *ent.TodoOrder) (*ent.TodoConnection, error) {
 -	return r.client.Todo.Query().
 +	return r.client.Debug().Todo.Query().
 		Paginate(ctx, after, first, before, last,
