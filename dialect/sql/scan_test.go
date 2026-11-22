@@ -359,6 +359,79 @@ func TestScanTypeOf(t *testing.T) {
 	require.IsType(t, (*any)(nil), tv)
 }
 
+func TestSelectValues(t *testing.T) {
+	var (
+		values SelectValues
+		names  = []string{"id", "name", "age"}
+	)
+	values.Set(names[0], int64(1))
+	values.Set(names[1], "a8m")
+	values.Set(names[2], nil)
+	v, err := values.Get("id")
+	require.NoError(t, err)
+	require.EqualValues(t, 1, v)
+	v, err = values.Get("name")
+	require.NoError(t, err)
+	require.EqualValues(t, "a8m", v)
+	v, err = values.Get("age")
+	require.NoError(t, err)
+	require.Nil(t, v)
+	_, err = values.Get("nick_name")
+	require.Error(t, err, "should fail on missing value")
+}
+
+func TestSelectValuesRawBytes(t *testing.T) {
+	// Columns scanned by their database type (see ScanTypeOf), where
+	// string columns are reported as sql.RawBytes by the underlying
+	// driver (e.g. go-sql-driver/mysql, see issue #4287).
+	rows := sqlmock.NewRowsWithColumnDefinition(
+		sqlmock.NewColumn("organization_id_value").OfType("CHAR(36)", sql.RawBytes{}),
+		sqlmock.NewColumn("transaction_date_dayOnly").OfType("DATE", sql.RawBytes{}),
+	).
+		AddRow([]byte("66e7e7f1537ed06f11be20dd"), []byte("2023-10-30")).
+		AddRow([]byte("88ccdffb2259abcdef01234"), nil)
+	var values []SelectValues
+	r := toRows(rows)
+	defer r.Close()
+	columns, err := r.Columns()
+	require.NoError(t, err)
+	for r.Next() {
+		sv := make(SelectValues)
+		values = append(values, sv)
+		vals := make([]any, len(columns))
+		for i := range columns {
+			// The generated code scans unknown columns into UnknownType
+			// and replaces them with the column scan type (see sqlgraph).
+			vals[i] = new(UnknownType)
+		}
+		for i := range vals {
+			if _, ok := vals[i].(*UnknownType); ok {
+				vals[i] = ScanTypeOf(&Rows{ColumnScanner: r}, i)
+			}
+		}
+		require.NoError(t, r.Scan(vals...))
+		for i, c := range columns {
+			sv.Set(c, vals[i])
+		}
+	}
+	require.NoError(t, r.Err())
+	// Values are read after the rows were iterated and their underlying
+	// buffers (referenced by sql.RawBytes) were invalidated (see #4287).
+	v, err := values[0].Get("organization_id_value")
+	require.NoError(t, err)
+	require.Equal(t, "66e7e7f1537ed06f11be20dd", v)
+	v, err = values[0].Get("transaction_date_dayOnly")
+	require.NoError(t, err)
+	require.Equal(t, "2023-10-30", v)
+	v, err = values[1].Get("organization_id_value")
+	require.NoError(t, err)
+	require.Equal(t, "88ccdffb2259abcdef01234", v)
+	// Scanned NULL value.
+	v, err = values[1].Get("transaction_date_dayOnly")
+	require.NoError(t, err)
+	require.Nil(t, v)
+}
+
 func toRows(mrows *sqlmock.Rows) *sql.Rows {
 	db, mock, _ := sqlmock.New()
 	mock.ExpectQuery("").WillReturnRows(mrows)

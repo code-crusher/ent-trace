@@ -380,8 +380,20 @@ func (s *SelectValues) Set(name string, v any) {
 	if *s == nil {
 		*s = make(SelectValues)
 	}
-	if pv, ok := v.(*any); ok && pv != nil {
-		v = *pv
+	switch pv := v.(type) {
+	case *sql.RawBytes:
+		// RawBytes references a buffer owned by the sql.Rows and is only
+		// valid until the next call to Scan/Next/Close. Copy its content,
+		// as the value is read after the rows were iterated (see #4287).
+		if rb := *pv; rb != nil {
+			v = string(rb)
+		} else {
+			v = nil
+		}
+	case *any:
+		if pv != nil {
+			v = *pv
+		}
 	}
 	(*s)[name] = v
 }

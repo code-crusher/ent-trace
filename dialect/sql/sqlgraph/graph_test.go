@@ -6,6 +6,7 @@ package sqlgraph
 
 import (
 	"context"
+	dbsql "database/sql"
 	"database/sql/driver"
 	"errors"
 	"fmt"
@@ -1679,6 +1680,8 @@ type user struct {
 		fk1 int
 		fk2 int
 	}
+	// Dynamic values that were selected at runtime (see issue #4287).
+	selectValues sql.SelectValues
 }
 
 func (*user) values(columns []string) ([]any, error) {
@@ -1690,7 +1693,7 @@ func (*user) values(columns []string) ([]any, error) {
 		case "name":
 			values[i] = &sql.NullString{}
 		default:
-			return nil, fmt.Errorf("unexpected column %q", c)
+			values[i] = new(sql.UnknownType)
 		}
 	}
 	return values, nil
@@ -1715,10 +1718,15 @@ func (u *user) assign(columns []string, values []any) error {
 		case "fk2":
 			u.edges.fk2 = int(values[i].(*sql.NullInt64).Int64)
 		default:
-			return fmt.Errorf("unknown column %q", c)
+			u.selectValues.Set(c, values[i])
 		}
 	}
 	return nil
+}
+
+// Value returns the value that was dynamically selected and assigned to the user.
+func (u *user) Value(name string) (any, error) {
+	return u.selectValues.Get(name)
 }
 
 func TestUpdateNode(t *testing.T) {
@@ -2552,6 +2560,50 @@ func TestQueryNodesSchema(t *testing.T) {
 	require.Equal(t, &user{id: 1, age: 10, name: ""}, users[0])
 	require.Equal(t, &user{id: 2, age: 20, name: ""}, users[1])
 	require.Equal(t, &user{id: 3, age: 30, name: "a8m", edges: struct{ fk1, fk2 int }{1, 1}}, users[2])
+}
+
+func TestQueryNodesDynamicValues(t *testing.T) {
+	// Simulate drivers that report the scan type of string columns as
+	// sql.RawBytes (e.g. go-sql-driver/mysql, see issue #4287).
+	rows := sqlmock.NewRowsWithColumnDefinition(
+		sqlmock.NewColumn("id").OfType("BIGINT", dbsql.NullInt64{}),
+		sqlmock.NewColumn("name_value").OfType("VARCHAR(255)", dbsql.RawBytes{}),
+	).
+		AddRow(1, []byte("a8m")).
+		AddRow(2, nil)
+	db, mock, err := sqlmock.New()
+	require.NoError(t, err)
+	mock.ExpectQuery("").WillReturnRows(rows)
+
+	var (
+		users []*user
+		spec  = &QuerySpec{
+			Node: &NodeSpec{
+				Table:   "users",
+				Columns: []string{"id"},
+				ID:      &FieldSpec{Column: "id", Type: field.TypeInt},
+			},
+			ScanValues: func(columns []string) ([]any, error) {
+				u := &user{selectValues: sql.SelectValues{}}
+				users = append(users, u)
+				return u.values(columns)
+			},
+			Assign: func(columns []string, values []any) error {
+				return users[len(users)-1].assign(columns, values)
+			},
+		}
+	)
+	err = QueryNodes(context.Background(), sql.OpenDB("", db), spec)
+	require.NoError(t, err)
+	// Values are read after the query was executed and scanned. The
+	// sql.RawBytes values reference the underlying rows buffer, which is
+	// reused between rows (see #4287).
+	name, err := users[0].Value("name_value")
+	require.NoError(t, err)
+	require.Equal(t, "a8m", name)
+	name, err = users[1].Value("name_value")
+	require.NoError(t, err)
+	require.Nil(t, name, "NULL value should be nil")
 }
 
 func TestQueryEdges(t *testing.T) {
