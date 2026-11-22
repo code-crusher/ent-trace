@@ -242,9 +242,9 @@ func (d *MySQL) atIncrementC(t *schema.Table, c *schema.Column) {
 	}
 }
 
-func (d *MySQL) atIncrementT(t *schema.Table, v int64) {
+func (d *MySQL) atIncrementT(t1 *Table, t2 *schema.Table, v int64) {
 	if v >= 0 {
-		t.AddAttrs(mysql.NewAutoIncrement(uint64(v)))
+		t2.AddAttrs(mysql.NewAutoIncrement(uint64(v)))
 	}
 }
 

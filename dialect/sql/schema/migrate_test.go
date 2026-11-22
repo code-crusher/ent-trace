@@ -462,3 +462,37 @@ func TestAtlas_ParallelCreate(t *testing.T) {
 	}
 	wg.Wait()
 }
+
+func TestMigrate_GlobalUniqueIDSQLiteSequence(t *testing.T) {
+	// Ensure the migration does not fail with "no such table: sqlite_sequence"
+	// when tables with non-autoincrement primary-keys (e.g. UUIDs) are created
+	// before any table with an AUTOINCREMENT primary-key. The "sqlite_sequence"
+	// table is created by SQLite only when the first AUTOINCREMENT table is
+	// created. See github.com/ent/ent/issues/4374.
+	accCols := []*Column{{Name: "id", Type: field.TypeUUID}}
+	usrCols := []*Column{
+		{Name: "id", Type: field.TypeInt, Increment: true, SchemaType: map[string]string{"sqlite3": "integer"}},
+		{Name: "name", Type: field.TypeString},
+	}
+	accounts := &Table{Name: "accounts", Columns: accCols, PrimaryKey: []*Column{accCols[0]}}
+	users := &Table{Name: "users", Columns: usrCols, PrimaryKey: []*Column{usrCols[0]}}
+
+	db, err := sql.Open(dialect.SQLite, "file:test?mode=memory&_fk=1")
+	require.NoError(t, err)
+	m, err := NewMigrate(db, WithGlobalUniqueID(true))
+	require.NoError(t, err)
+	require.NoError(t, m.Create(context.Background(), accounts, users))
+
+	// The global unique id range is still allocated for both tables in the types table.
+	rows, err := db.QueryContext(context.Background(), "SELECT `type` FROM `ent_types` ORDER BY `id` ASC")
+	require.NoError(t, err)
+	defer rows.Close()
+	var types []string
+	for rows.Next() {
+		var typ string
+		require.NoError(t, rows.Scan(&typ))
+		types = append(types, typ)
+	}
+	require.NoError(t, rows.Err())
+	require.Equal(t, []string{"accounts", "users"}, types)
+}

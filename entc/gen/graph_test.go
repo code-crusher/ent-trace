@@ -768,3 +768,102 @@ func TestEdgeFieldCollation(t *testing.T) {
 	require.True(t, ok)
 	require.Equal(t, "utf8mb4_bin", col.Collation)
 }
+
+func TestEdgeFieldID(t *testing.T) {
+	uuidField := func(immutable bool) *load.Field {
+		return &load.Field{
+			Name: "id",
+			Info: &field.TypeInfo{
+				Type:  field.TypeUUID,
+				RType: &field.RType{Ident: "uuid.UUID", PkgPath: "github.com/google/uuid"},
+			},
+			Immutable: immutable,
+		}
+	}
+	newSchemas := func(e *load.Edge, profileID *load.Field) (*load.Schema, *load.Schema) {
+		user := &load.Schema{
+			Name:   "User",
+			Fields: []*load.Field{uuidField(false)},
+			Edges: []*load.Edge{
+				{Name: "profile", Type: "Profile", Unique: true},
+			},
+		}
+		profile := &load.Schema{
+			Name:   "Profile",
+			Fields: []*load.Field{profileID},
+			Edges:  []*load.Edge{e},
+		}
+		return user, profile
+	}
+	t.Run("Valid", func(t *testing.T) {
+		user, profile := newSchemas(&load.Edge{
+			Name: "user", Type: "User", RefName: "profile", Inverse: true,
+			Unique: true, Required: true, Immutable: true, Field: "id",
+		}, uuidField(true))
+		g, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, user, profile)
+		require.NoError(t, err)
+		typ := g.Nodes[1]
+		require.Equal(t, "Profile", typ.Name)
+		// The foreign-key of the "user" edge is the ID field of the profile,
+		// and it points to the "users" table (Issue 4374).
+		edge := typ.Edges[0]
+		fk, err := edge.ForeignKey()
+		require.NoError(t, err)
+		require.True(t, fk.UserDefined)
+		require.Equal(t, "id", fk.Field.Name)
+		require.Equal(t, "ID", fk.StructField())
+		require.Equal(t, "id", edge.Rel.Column())
+		require.False(t, typ.ID.IsEdgeField(), "ID field should not be marked as an edge-field")
+		// The FK column resides in the "profiles" table and references "users.id".
+		tables, err := g.Tables()
+		require.NoError(t, err)
+		idx := slices.IndexFunc(tables, func(tb *schema.Table) bool { return tb.Name == "profiles" })
+		require.NotEqual(t, -1, idx)
+		profiles := tables[idx]
+		require.Len(t, profiles.ForeignKeys, 1)
+		require.Equal(t, "id", profiles.ForeignKeys[0].Columns[0].Name)
+		require.Equal(t, "users", profiles.ForeignKeys[0].RefTable.Name)
+		// The ID column is both the primary-key and the foreign-key, hence, it
+		// was not added twice to the table and it is not nullable.
+		require.Len(t, profiles.Columns, 1)
+		require.False(t, profiles.Columns[0].Nullable)
+	})
+	t.Run("MismatchType", func(t *testing.T) {
+		user := &load.Schema{
+			Name: "User",
+			Fields: []*load.Field{
+				{Name: "id", Info: &field.TypeInfo{Type: field.TypeInt}},
+			},
+			Edges: []*load.Edge{
+				{Name: "profile", Type: "Profile", Unique: true},
+			},
+		}
+		profile := &load.Schema{
+			Name: "Profile",
+			Fields: []*load.Field{
+				{Name: "id", Info: &field.TypeInfo{Type: field.TypeString}, Immutable: true},
+			},
+			Edges: []*load.Edge{
+				{Name: "user", Type: "User", RefName: "profile", Inverse: true, Unique: true, Required: true, Immutable: true, Field: "id"},
+			},
+		}
+		_, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, user, profile)
+		require.EqualError(t, err, `entc/gen: set "User" foreign-keys: mismatch field type between edge field "id" and id of type "User" (string != int)`)
+	})
+	t.Run("NotImmutable", func(t *testing.T) {
+		user, profile := newSchemas(&load.Edge{
+			Name: "user", Type: "User", RefName: "profile", Inverse: true,
+			Unique: true, Required: true, Immutable: true, Field: "id",
+		}, uuidField(false))
+		_, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, user, profile)
+		require.EqualError(t, err, `entc/gen: set "User" foreign-keys: edge "user" was set as Immutable, but edge-field "id" is not`)
+	})
+	t.Run("NotFound", func(t *testing.T) {
+		user, profile := newSchemas(&load.Edge{
+			Name: "user", Type: "User", RefName: "profile", Inverse: true,
+			Unique: true, Required: true, Immutable: true, Field: "other_id",
+		}, uuidField(true))
+		_, err := NewGraph(&Config{Package: "entc/gen", Storage: drivers[0]}, user, profile)
+		require.EqualError(t, err, `entc/gen: set "User" foreign-keys: field "other_id" was not found in Profile.Fields() for edge "user"`)
+	})
+}

@@ -181,8 +181,16 @@ func (d *SQLite) atIncrementC(t *schema.Table, c *schema.Column) {
 	}
 }
 
-func (d *SQLite) atIncrementT(t *schema.Table, v int64) {
-	t.AddAttrs(&sqlite.AutoIncrement{Seq: v})
+func (d *SQLite) atIncrementT(t1 *Table, t2 *schema.Table, v int64) {
+	// Skip setting the initial sequence value in case the table primary-key
+	// is not an AUTOINCREMENT column (e.g. a UUID primary-key), as the value
+	// is stored in the "sqlite_sequence" table that is created only when the
+	// first AUTOINCREMENT table is created, and it may not exist at this
+	// stage of the migration.
+	if pk := t1.PrimaryKey; len(pk) == 1 && !pk[0].Increment {
+		return
+	}
+	t2.AddAttrs(&sqlite.AutoIncrement{Seq: v})
 }
 
 func (d *SQLite) atIndex(idx1 *Index, t2 *schema.Table, idx2 *schema.Index) error {

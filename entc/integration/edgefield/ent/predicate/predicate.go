@@ -10,6 +10,9 @@ import (
 	"entgo.io/ent/dialect/sql"
 )
 
+// Account is the predicate function for account builders.
+type Account func(*sql.Selector)
+
 // Car is the predicate function for car builders.
 type Car func(*sql.Selector)
 
@@ -33,6 +36,9 @@ type Post func(*sql.Selector)
 
 // Rental is the predicate function for rental builders.
 type Rental func(*sql.Selector)
+
+// Settings is the predicate function for settings builders.
+type Settings func(*sql.Selector)
 
 // User is the predicate function for user builders.
 type User func(*sql.Selector)

@@ -16,6 +16,7 @@ import (
 	"entgo.io/ent"
 	"entgo.io/ent/dialect/sql"
 	"entgo.io/ent/dialect/sql/sqlgraph"
+	"entgo.io/ent/entc/integration/edgefield/ent/account"
 	"entgo.io/ent/entc/integration/edgefield/ent/car"
 	"entgo.io/ent/entc/integration/edgefield/ent/card"
 	"entgo.io/ent/entc/integration/edgefield/ent/info"
@@ -24,6 +25,7 @@ import (
 	"entgo.io/ent/entc/integration/edgefield/ent/pet"
 	"entgo.io/ent/entc/integration/edgefield/ent/post"
 	"entgo.io/ent/entc/integration/edgefield/ent/rental"
+	"entgo.io/ent/entc/integration/edgefield/ent/settings"
 	"entgo.io/ent/entc/integration/edgefield/ent/user"
 )
 
@@ -85,6 +87,7 @@ var (
 func checkColumn(t, c string) error {
 	initCheck.Do(func() {
 		columnCheck = sql.NewColumnCheck(map[string]func(string) bool{
+			account.Table:  account.ValidColumn,
 			car.Table:      car.ValidColumn,
 			card.Table:     card.ValidColumn,
 			info.Table:     info.ValidColumn,
@@ -93,6 +96,7 @@ func checkColumn(t, c string) error {
 			pet.Table:      pet.ValidColumn,
 			post.Table:     post.ValidColumn,
 			rental.Table:   rental.ValidColumn,
+			settings.Table: settings.ValidColumn,
 			user.Table:     user.ValidColumn,
 		})
 	})

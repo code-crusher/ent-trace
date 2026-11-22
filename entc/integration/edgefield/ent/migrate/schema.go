@@ -12,6 +12,16 @@ import (
 )
 
 var (
+	// AccountsColumns holds the columns for the "accounts" table.
+	AccountsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+	}
+	// AccountsTable holds the schema information for the "accounts" table.
+	AccountsTable = &schema.Table{
+		Name:       "accounts",
+		Columns:    AccountsColumns,
+		PrimaryKey: []*schema.Column{AccountsColumns[0]},
+	}
 	// CarsColumns holds the columns for the "cars" table.
 	CarsColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeUUID},
@@ -195,6 +205,25 @@ var (
 			},
 		},
 	}
+	// SettingsColumns holds the columns for the "settings" table.
+	SettingsColumns = []*schema.Column{
+		{Name: "id", Type: field.TypeUUID},
+		{Name: "theme", Type: field.TypeString, Default: "light"},
+	}
+	// SettingsTable holds the schema information for the "settings" table.
+	SettingsTable = &schema.Table{
+		Name:       "settings",
+		Columns:    SettingsColumns,
+		PrimaryKey: []*schema.Column{SettingsColumns[0]},
+		ForeignKeys: []*schema.ForeignKey{
+			{
+				Symbol:     "settings_accounts_settings",
+				Columns:    []*schema.Column{SettingsColumns[0]},
+				RefColumns: []*schema.Column{AccountsColumns[0]},
+				OnDelete:   schema.NoAction,
+			},
+		},
+	}
 	// UsersColumns holds the columns for the "users" table.
 	UsersColumns = []*schema.Column{
 		{Name: "id", Type: field.TypeInt, Increment: true, SchemaType: map[string]string{"sqlite3": "integer"}},
@@ -223,6 +252,7 @@ var (
 	}
 	// Tables holds all the tables in the schema.
 	Tables = []*schema.Table{
+		AccountsTable,
 		CarsTable,
 		CardsTable,
 		InfosTable,
@@ -231,6 +261,7 @@ var (
 		PetsTable,
 		PostsTable,
 		RentalsTable,
+		SettingsTable,
 		UsersTable,
 	}
 )
@@ -245,6 +276,7 @@ func init() {
 	PostsTable.ForeignKeys[0].RefTable = UsersTable
 	RentalsTable.ForeignKeys[0].RefTable = CarsTable
 	RentalsTable.ForeignKeys[1].RefTable = UsersTable
+	SettingsTable.ForeignKeys[0].RefTable = AccountsTable
 	UsersTable.ForeignKeys[0].RefTable = UsersTable
 	UsersTable.ForeignKeys[1].RefTable = UsersTable
 }

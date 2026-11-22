@@ -194,8 +194,8 @@ func (d *Postgres) atIncrementC(t *schema.Table, c *schema.Column) {
 	c.AddAttrs(id)
 }
 
-func (d *Postgres) atIncrementT(t *schema.Table, v int64) {
-	t.AddAttrs(&postgres.Identity{Sequence: &postgres.Sequence{Start: v}})
+func (d *Postgres) atIncrementT(t1 *Table, t2 *schema.Table, v int64) {
+	t2.AddAttrs(&postgres.Identity{Sequence: &postgres.Sequence{Start: v}})
 }
 
 // indexOpClass returns a map holding the operator-class mapping if exists.

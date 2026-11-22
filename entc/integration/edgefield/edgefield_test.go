@@ -14,7 +14,9 @@ import (
 	"entgo.io/ent/entc/integration/edgefield/ent"
 	"entgo.io/ent/entc/integration/edgefield/ent/migrate"
 	"entgo.io/ent/entc/integration/edgefield/ent/node"
+	"entgo.io/ent/entc/integration/edgefield/ent/account"
 	"entgo.io/ent/entc/integration/edgefield/ent/pet"
+	"entgo.io/ent/entc/integration/edgefield/ent/settings"
 	"entgo.io/ent/entc/integration/edgefield/ent/rental"
 	"entgo.io/ent/entc/integration/edgefield/ent/user"
 
@@ -142,4 +144,57 @@ func TestNamedEdges(t *testing.T) {
 	require.NoError(t, err)
 	require.Len(t, pets, 1)
 	require.Equal(t, pets[0].OwnerID, u1.ID)
+}
+
+// TestEdgeFieldID ensures the primary-key of a type can be used as the
+// foreign-key of an edge (also known as the "shared primary-key" pattern).
+// In this case, the edge-field is the "id" field of the type, and the
+// foreign-key column is also the primary-key of the table.
+// See github.com/ent/ent/issues/4374.
+func TestEdgeFieldID(t *testing.T) {
+	client, err := ent.Open(dialect.SQLite, "file:ent?mode=memory&_fk=1")
+	require.NoError(t, err)
+	defer client.Close()
+	ctx := context.Background()
+	require.NoError(t, client.Schema.Create(ctx, migrate.WithGlobalUniqueID(true)))
+
+	a8m := client.Account.Create().SaveX(ctx)
+	// The settings of an account share the same primary-key with it.
+	st := client.Settings.Create().SetAccount(a8m).SaveX(ctx)
+	require.Equal(t, a8m.ID, st.ID)
+	require.Equal(t, "light", st.Theme)
+
+	// Query the settings from both directions of the edge.
+	require.Equal(t, st.ID, a8m.QuerySettings().OnlyIDX(ctx))
+	require.Equal(t, a8m.ID, st.QueryAccount().OnlyIDX(ctx))
+
+	// Eager loading the shared primary-key edge works well.
+	a8m = client.Account.Query().WithSettings(func(*ent.SettingsQuery) {}).OnlyX(ctx)
+	require.Equal(t, st.ID, a8m.Edges.Settings.ID)
+	st = client.Settings.Query().WithAccount(func(*ent.AccountQuery) {}).OnlyX(ctx)
+	require.Equal(t, a8m.ID, st.Edges.Account.ID)
+
+	// The edge is filterable by the edge-holder id.
+	require.Equal(t, st.ID, client.Settings.Query().Where(settings.HasAccountWith(account.ID(a8m.ID))).OnlyIDX(ctx))
+
+	// Only a single settings record can be assigned to an account.
+	_, err = client.Settings.Create().SetAccount(a8m).Save(ctx)
+	require.True(t, ent.IsConstraintError(err), "UNIQUE constraint failed: settings.id")
+
+	// Creating a settings record with an explicit id, but without the account
+	// edge is not allowed, as the required edge is missing.
+	_, err = client.Settings.Create().SetID(a8m.ID).Save(ctx)
+	require.True(t, ent.IsNotFound(err) || ent.IsConstraintError(err) || ent.IsValidationError(err))
+
+	// The same behavior is kept for the generated "id" setters.
+	other := client.Account.Create().SaveX(ctx)
+	st2 := client.Settings.Create().SetID(other.ID).SetAccount(other).SaveX(ctx)
+	require.Equal(t, other.ID, st2.ID)
+	require.Equal(t, other.ID, st2.QueryAccount().OnlyIDX(ctx))
+
+	// Deleting the account cascades the deletion of its settings, since the
+	// foreign-key is also the primary-key of the settings table.
+	client.Account.DeleteOneID(a8m.ID).ExecX(ctx)
+	require.False(t, client.Settings.Query().Where(settings.ID(st.ID)).ExistX(ctx))
+	require.True(t, client.Settings.Query().Where(settings.ID(st2.ID)).ExistX(ctx))
 }

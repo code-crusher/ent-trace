@@ -545,7 +545,10 @@ type atBuilder interface {
 	atTypeC(*Column, *schema.Column) error
 	atUniqueC(*Table, *Column, *schema.Table, *schema.Column)
 	atIncrementC(*schema.Table, *schema.Column)
-	atIncrementT(*schema.Table, int64)
+	// atIncrementT sets the initial auto-increment value of the table. The ent
+	// table is passed to allow the dialect to skip the operation in case the
+	// table primary-key is not an incremental column (e.g. a UUID primary-key).
+	atIncrementT(*Table, *schema.Table, int64)
 	atIndex(*Index, *schema.Table, *schema.Index) error
 	atTypeRangeSQL(t ...string) string
 }
@@ -886,9 +889,9 @@ func (a *Atlas) realm(tables []*Table) (*schema.Realm, error) {
 			if err != nil {
 				return nil, err
 			}
-			a.sqlDialect.atIncrementT(at, r)
+			a.sqlDialect.atIncrementT(et, at, r)
 		case et.Annotation != nil && et.Annotation.IncrementStart != nil:
-			a.sqlDialect.atIncrementT(at, int64(*et.Annotation.IncrementStart))
+			a.sqlDialect.atIncrementT(et, at, int64(*et.Annotation.IncrementStart))
 		}
 		if err := a.aColumns(et, at); err != nil {
 			return nil, err
@@ -1223,4 +1226,15 @@ func removeAttr(attrs []schema.Attr, t reflect.Type) []schema.Attr {
 		}
 	}
 	return f
+}
+
+// hasAttr reports if the given attribute exists in the attribute list.
+func hasAttr(attrs []schema.Attr, target schema.Attr) bool {
+	t := reflect.TypeOf(target)
+	for _, a := range attrs {
+		if reflect.TypeOf(a) == t {
+			return true
+		}
+	}
+	return false
 }

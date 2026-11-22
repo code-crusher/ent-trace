@@ -9,11 +9,13 @@ package ent
 import (
 	"time"
 
+	"entgo.io/ent/entc/integration/edgefield/ent/account"
 	"entgo.io/ent/entc/integration/edgefield/ent/car"
 	"entgo.io/ent/entc/integration/edgefield/ent/metadata"
 	"entgo.io/ent/entc/integration/edgefield/ent/node"
 	"entgo.io/ent/entc/integration/edgefield/ent/rental"
 	"entgo.io/ent/entc/integration/edgefield/ent/schema"
+	"entgo.io/ent/entc/integration/edgefield/ent/settings"
 	"github.com/google/uuid"
 )
 
@@ -21,6 +23,12 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	accountFields := schema.Account{}.Fields()
+	_ = accountFields
+	// accountDescID is the schema descriptor for id field.
+	accountDescID := accountFields[0].Descriptor()
+	// account.DefaultID holds the default value on creation for the id field.
+	account.DefaultID = accountDescID.Default.(func() uuid.UUID)
 	carFields := schema.Car{}.Fields()
 	_ = carFields
 	// carDescID is the schema descriptor for id field.
@@ -45,4 +53,10 @@ func init() {
 	rentalDescDate := rentalFields[0].Descriptor()
 	// rental.DefaultDate holds the default value on creation for the date field.
 	rental.DefaultDate = rentalDescDate.Default.(func() time.Time)
+	settingsFields := schema.Settings{}.Fields()
+	_ = settingsFields
+	// settingsDescTheme is the schema descriptor for theme field.
+	settingsDescTheme := settingsFields[1].Descriptor()
+	// settings.DefaultTheme holds the default value on creation for the theme field.
+	settings.DefaultTheme = settingsDescTheme.Default.(string)
 }

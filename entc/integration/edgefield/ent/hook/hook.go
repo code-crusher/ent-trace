@@ -13,6 +13,18 @@ import (
 	"entgo.io/ent/entc/integration/edgefield/ent"
 )
 
+// The AccountFunc type is an adapter to allow the use of ordinary
+// function as Account mutator.
+type AccountFunc func(context.Context, *ent.AccountMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f AccountFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.AccountMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.AccountMutation", m)
+}
+
 // The CarFunc type is an adapter to allow the use of ordinary
 // function as Car mutator.
 type CarFunc func(context.Context, *ent.CarMutation) (ent.Value, error)
@@ -107,6 +119,18 @@ func (f RentalFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, erro
 		return f(ctx, mv)
 	}
 	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.RentalMutation", m)
+}
+
+// The SettingsFunc type is an adapter to allow the use of ordinary
+// function as Settings mutator.
+type SettingsFunc func(context.Context, *ent.SettingsMutation) (ent.Value, error)
+
+// Mutate calls f(ctx, m).
+func (f SettingsFunc) Mutate(ctx context.Context, m ent.Mutation) (ent.Value, error) {
+	if mv, ok := m.(*ent.SettingsMutation); ok {
+		return f(ctx, mv)
+	}
+	return nil, fmt.Errorf("unexpected mutation type %T. expect *ent.SettingsMutation", m)
 }
 
 // The UserFunc type is an adapter to allow the use of ordinary

@@ -816,11 +816,16 @@ func (t *Type) setupBlobKeys() {
 func (t *Type) setupFieldEdge(fk *ForeignKey, fkOwner *Edge, fkName string) error {
 	tf, ok := t.fields[fkName]
 	if !ok {
-		return fmt.Errorf("field %q was not found in %s.Fields() for edge %q", fkName, t.Name, fkOwner.Name)
+		// The field was not defined in the type fields, but it may reference
+		// the ID field of the type. In this case, the foreign-key is also the
+		// primary-key of the table (e.g. "profile.id" references "user.id").
+		// See Issue #4374.
+		if !t.HasOneFieldID() || t.ID.Name != fkName {
+			return fmt.Errorf("field %q was not found in %s.Fields() for edge %q", fkName, t.Name, fkOwner.Name)
+		}
+		tf = t.ID
 	}
-	switch tf, ok := t.fields[fkName]; {
-	case !ok:
-		return fmt.Errorf("field %q was not found in %s.Fields() for edge %q", fkName, t.Name, fkOwner.Name)
+	switch {
 	case tf.Optional && !fkOwner.Optional:
 		return fmt.Errorf("edge-field %q was set as Optional, but edge %q is not", fkName, fkOwner.Name)
 	case !tf.Optional && fkOwner.Optional:
@@ -837,6 +842,14 @@ func (t *Type) setupFieldEdge(fk *ForeignKey, fkOwner *Edge, fkName string) erro
 	}
 	fk.UserDefined = true
 	tf.fk, fk.Field = fk, tf
+	if tf == t.ID {
+		// The foreign-key is the ID field of the type. In this case, the field
+		// is not marked as an "edge-field" (see Field.IsEdgeField), as it is
+		// still the primary-key of the table and it is not stored in the
+		// mutation as a relation. The edge information is kept on the
+		// foreign-key itself, like the workaround for Issue 1288.
+		tf.fk, fk.Field = nil, tf
+	}
 	ekey, err := fkOwner.StorageKey()
 	if err != nil {
 		return err
