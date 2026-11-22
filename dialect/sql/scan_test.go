@@ -15,6 +15,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+// scannedUUID wraps uuid.UUID the same way custom UUID-based
+// ID types do. Note that it implements sql.Scanner on its
+// pointer only, as the method is promoted from *uuid.UUID.
+type scannedUUID struct{ uuid.UUID }
+
 func TestScanSlice(t *testing.T) {
 	mock := sqlmock.NewRows([]string{"name"}).
 		AddRow("foo").
@@ -112,6 +117,34 @@ func TestScanSlice(t *testing.T) {
 	require.NoError(t, ScanSlice(toRows(mock), &pids))
 	require.Equal(t, u1, pids[0].String())
 	require.Equal(t, u2, pids[1].String())
+
+	// Types that implement sql.Scanner on their pointer only
+	// (e.g. a struct embedding google/uuid.UUID), see #4348.
+	mock = sqlmock.NewRows([]string{"ids"}).
+		AddRow([]byte(u1)).
+		AddRow([]byte(u2))
+	var scanned []scannedUUID
+	require.NoError(t, ScanSlice(toRows(mock), &scanned))
+	require.Equal(t, u1, scanned[0].String())
+	require.Equal(t, u2, scanned[1].String())
+
+	mock = sqlmock.NewRows([]string{"pids"}).
+		AddRow([]byte(u1)).
+		AddRow([]byte(u2))
+	var pscanned []*scannedUUID
+	require.NoError(t, ScanSlice(toRows(mock), &pscanned))
+	require.Equal(t, u1, pscanned[0].String())
+	require.Equal(t, u2, pscanned[1].String())
+
+	// Standard library types that implement sql.Scanner on their pointer.
+	mock = sqlmock.NewRows([]string{"names"}).
+		AddRow("a8m").
+		AddRow(nil)
+	var names []sql.NullString
+	require.NoError(t, ScanSlice(toRows(mock), &names))
+	require.Equal(t, "a8m", names[0].String)
+	require.True(t, names[0].Valid)
+	require.False(t, names[1].Valid)
 
 	mock = sqlmock.NewRows([]string{"id", "first", "last"}).
 		AddRow(10, "Ariel", "Mashraki")

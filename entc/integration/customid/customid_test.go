@@ -291,6 +291,9 @@ func CustomID(t *testing.T, client *ent.Client) {
 		require.Len(t, l.LinkInformation, 1)
 		require.Equal(t, "ent", l.LinkInformation["ent"].Name)
 		require.Equal(t, "https://entgo.io/", l.LinkInformation["ent"].Link)
+		// IDs scans the id column into a type that implements
+		// sql.Scanner on its pointer only. See issue #4348.
+		require.Contains(t, client.Link.Query().IDsX(ctx), l.ID)
 	})
 }
 

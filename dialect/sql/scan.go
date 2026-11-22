@@ -179,9 +179,12 @@ func (j *nullJSON) Scan(v interface{}) error {
 }
 
 // assignable reports if the given type can be assigned directly by `Rows.Scan`.
+// A type is assignable if it, or its pointer, implements the sql.Scanner
+// interface, as some types (e.g. structs embedding a sql.Scanner) implement
+// it on their pointer only.
 func assignable(typ reflect.Type) bool {
 	switch k := typ.Kind(); {
-	case typ.Implements(scannerType):
+	case typ.Implements(scannerType), reflect.PtrTo(typ).Implements(scannerType):
 	case k == reflect.Interface && typ.NumMethod() == 0:
 	case k == reflect.String || k >= reflect.Bool && k <= reflect.Float64:
 	case (k == reflect.Slice || k == reflect.Array) && typ.Elem().Kind() == reflect.Uint8:
